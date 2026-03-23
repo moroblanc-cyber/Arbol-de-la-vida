@@ -2,7 +2,7 @@
   "name": "Calculadora Cabalística",
   "short_name": "Cábala",
   "description": "Calculadora de Genios y Sefirot del Método Villarrubia",
-  "start_url": "./index_genios.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0f172a",
