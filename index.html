@@ -1406,11 +1406,16 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
             const DICT_MODERNO = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, I: 9, J: 10, K: 20, L: 30, M: 40, N: 50, 'Ñ': 60, O: 70, P: 80, Q: 90, R: 100, S: 200, T: 300, U: 400, V: 500, W: 600, X: 700, Y: 800, Z: 900 };
             const NOMBRES_SEF = { 1: "Kéter", 2: "Jojmá", 3: "Biná", 4: "Jesed", 5: "Guevurá", 6: "Tiféret", 7: "Netzaj", 8: "Hod", 9: "Yesod", 10: "Maljut" };
             const CAJAS_FIJAS = { 1: 3, 2: 4, 3: 4, 4: 4, 5: 4, 6: 8, 7: 5, 8: 5, 9: 4, 10: 3 };
-            const CONEXIONES = {
-                1: [1, 3], 2: [1, 6], 3: [3, 2], 4: [2, 4], 5: [2, 6], 6: [3, 5], 7: [3, 6],
+		    const CONEXIONES = {
+                1: [1, 3], 2: [1, 6], 3: [3, 2], 
+                4: [2, 6], /* Antes era 2, 4 */
+                5: [2, 4], /* Antes era 2, 6 */
+                6: [3, 6], /* Antes era 3, 5 */
+                7: [3, 5], /* Antes era 3, 6 */
                 8: [5, 4], 9: [4, 6], 10: [4, 7], 11: [5, 6], 12: [5, 8], 13: [6, 7], 14: [6, 9],
                 15: [6, 8], 16: [8, 7], 17: [7, 9], 18: [7, 10], 19: [8, 9], 20: [8, 10], 21: [9, 10], 22: [1, 2]
             };
+
 
             // Coordenadas fijas SVG para el Árbol (Diseño base)
             const NODOS = {
