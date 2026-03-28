@@ -2352,24 +2352,26 @@ function exportarImagenA4(tipo) {
                     { data: bC, nombre: "BLOQUE C" }
                 ];
 
-                bloquesVocacionales.forEach(bv => {
+				                bloquesVocacionales.forEach(bv => {
                     if (!bv.data || !bv.data.all) return;
                     bv.data.all.forEach(num => {
                         if (num >= 1 && num <= 22) {
                             if (historialTotal.has(num)) {
-                                // Sendero ya tocado: Solo dibuja Cruz, NO suma a la cuenta de líneas
+                                // Si ya había una línea base (1-13), dibuja la cruz de repetición
                                 objSenderos[num].push("voc_rep");
                                 lineasParaTabla1[num].cruces++; 
                             } else {
-                                // Sendero virgen: Dibuja Triángulos y SÍ suma a la cuenta de líneas
+                                // Si no hay línea base, dibuja los triángulos (línea semilla)
                                 objSenderos[num].push("voc_new");
-                                historialTotal.add(num);
+                                // Al no añadirlo al historialTotal, permitimos que haya múltiples líneas semilla
                                 lineasParaTabla1[num].cuenta++;
                                 lineasParaTabla1[num].desglose.push(`Línea de triángulos rojos (${bv.nombre})`);
                             }
                         }
                     });
                 });
+
+				
 
                 // Recreamos pathCounts basados ÚNICAMENTE en las líneas reales que se han pintado
                 let pathCounts = {};
