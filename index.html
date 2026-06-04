@@ -1067,7 +1067,12 @@
                 <button class="btn-main" style="padding: 0.4rem; background: var(--sobrecarga); width: auto; margin:0;"
                     onclick="cerrarGestor()">❌</button>
             </div>
-            <button class="btn-main" style="margin-bottom: 15px;" onclick="crearCarpeta()">📁 Nueva Carpeta</button>
+            <button class="btn-main" style="margin-bottom: 8px;" onclick="crearCarpeta()">📁 Nueva Carpeta</button>
+            <div style="display:flex; gap:8px; margin-bottom:15px;">
+                <button class="btn-main" style="flex:1; font-size:0.85em;" onclick="exportarArboles()">⬇ Exportar</button>
+                <button class="btn-main" style="flex:1; font-size:0.85em;" onclick="document.getElementById('input-importar').click()">⬆ Importar</button>
+                <input type="file" id="input-importar" accept=".json" style="display:none" onchange="importarArboles(this)">
+            </div>
             <div id="gestor-grid" class="gestor-lista"></div>
         </div>
 
@@ -1090,6 +1095,48 @@
             } catch (e) { archivoKabbalah = []; }
 
             function guardarEnLocal() { localStorage.setItem('archivoKabbalah', JSON.stringify(archivoKabbalah)); }
+
+            function exportarArboles() {
+                const json = JSON.stringify(archivoKabbalah, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const fecha = new Date().toISOString().slice(0,10);
+                a.href = url;
+                a.download = `arboles_kabbalah_${fecha}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+
+            function importarArboles(input) {
+                const file = input.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const datos = JSON.parse(e.target.result);
+                        if (!Array.isArray(datos)) { alert('Archivo no válido.'); return; }
+                        const existingIds = new Set(archivoKabbalah.map(x => x.id));
+                        let añadidos = 0;
+                        datos.forEach(item => {
+                            if (item && typeof item === 'object') {
+                                if (existingIds.has(item.id)) {
+                                    item.id = item.tipo + '_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+                                }
+                                archivoKabbalah.push(item);
+                                añadidos++;
+                            }
+                        });
+                        guardarEnLocal();
+                        renderizarGestor();
+                        alert(`✅ ${añadidos} elementos importados correctamente.`);
+                    } catch(err) {
+                        alert('Error al leer el archivo: ' + err.message);
+                    }
+                    input.value = '';
+                };
+                reader.readAsText(file);
+            }
 
             function abrirGestor() { document.getElementById('gestor-sidebar').classList.add('open'); renderizarGestor(); }
             function cerrarGestor() { document.getElementById('gestor-sidebar').classList.remove('open'); }
