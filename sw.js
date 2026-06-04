@@ -1,32 +1,30 @@
-const CACHE_NAME = 'cabala-cache-v1';
+const CACHE_NAME = 'cabala-cache-v3';
 
-// Aquí le decimos qué archivos debe guardar en la memoria del iPad
 const urlsToCache = [
   './',
-  './index_genios.html',
+  './index.html',
   './manifest.json',
   './icono-192.png',
   './icono-512.png'
 ];
 
-// Fase de instalación: descarga los archivos
 self.addEventListener('install', event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Archivos cacheados correctamente');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
 });
 
-// Fase de intercepción: cuando no hay internet, saca los archivos de la memoria
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+    )
+  );
+});
+
 self.addEventListener('fetch', event => {
   event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // Si lo encuentra en la memoria, lo devuelve. Si no, lo busca en internet.
-        return response || fetch(event.request);
-      })
+    caches.match(event.request).then(response => response || fetch(event.request))
   );
 });
