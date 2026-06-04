@@ -1,46 +1,13 @@
 <!DOCTYPE html>
 <html lang="es-ES">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Motor Clínico Villarrubia - Fase 1</title>
-
-    <link rel="manifest" href="./manifest.json">
-    <meta name="theme-color" content="#0f172a">
-    <link rel="apple-touch-icon" href="./icono-192.png">
+    <!-- SortableJS CDN para drag and drop fluidos -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
-	
-	/* --- BLOQUEO VISUAL Y ANIMACIONES PARA iPAD --- */
-#gestor-grid * {
-    -webkit-tap-highlight-color: transparent !important;
-    -webkit-touch-callout: none !important;
-}
-
-.archivo-tocado {
-    background-color: #eff6ff !important;
-    border: 2px solid #3b82f6 !important;
-    /* Sin 'transition' para que el movimiento sea instantáneo y fluido */
-}
-
-.fantasma-hueco {
-    opacity: 0.4 !important;
-    background-color: #f8fafc !important;
-    border: 2px dashed #94a3b8 !important;
-}
-
-.archivo-en-dedo {
-    opacity: 0.95 !important;
-    background: #ffffff !important;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
-    z-index: 99999 !important;
-    /* Sin 'transform' ni 'pointer-events' para no romper el tamaño en iOS */
-}
-
-
 	
 	        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 	
@@ -560,7 +527,7 @@
             color: #64748b;
             background-color: var(--surface);
             padding: 2px 4px;
-            transform: translateY(50%);
+            transform: translateY(-50%);
             /* Auto-center vertical en JS */
         }
 
@@ -883,12 +850,6 @@
                     onclick="abrirGestor()">Gestor de Clientes</button>
 					
 					<button class="btn-main" onclick="copiarDatosGem()" style="background: #f59e0b; margin-top: 10px; color: #0f172a;">📋 Copiar Datos para Gem</button>
-					
-					<button type="button" onclick="exportarImagenA4('ARBOL')" style="margin-left: 10px; padding: 8px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">📥 PNG Árbol (A4)</button>
-
-<button type="button" onclick="exportarImagenA4('TABLAS')" style="margin-left: 10px; padding: 8px 15px; background-color: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer;">📥 PNG Tablas (A4)</button>
-
-
 
 					
             </div>
@@ -936,6 +897,30 @@
                                 <span id="out-hebreo-espiritu" style="font-size: 1.6em; font-weight: normal; color: var(--primary); display: block; margin-top: 5px;"></span>
                             </div>
                         </div>
+                    </div>
+
+                    <!-- BLOQUE TIKÚN -->
+                    <div id="bloque-tikun" style="background: var(--surface); padding: 15px; border-radius: var(--radius); margin-top: 15px; margin-bottom: 10px; border: 1px solid var(--border); width: 100%; display: none;">
+                        <h3 style="margin-top: 0; margin-bottom: 12px; font-size: 1.1em; color: var(--primary); text-align: center;">Tikún Personal (V Parte)</h3>
+                        <div style="text-align: center; margin-bottom: 12px;">
+                            <span id="out-tikun-formula" style="font-size: 1.05em; font-weight: bold; color: var(--secondary);"></span>
+                            <span id="out-tikun-tipo" style="font-size: 1em; font-weight: bold; color: var(--primary); display: block; margin-top: 4px;"></span>
+                        </div>
+                        <div style="display: flex; gap: 10px; text-align: center; margin-bottom: 12px;">
+                            <div style="flex: 1; background: var(--bg); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                <span style="font-size: 0.75em; font-weight: bold; color: var(--text-muted); display: block;">UNIFICACIÓN</span>
+                                <span id="out-tikun-unif" style="font-size: 0.95em; font-weight: bold; color: var(--secondary); display: block; margin-top: 3px;"></span>
+                            </div>
+                            <div style="flex: 1; background: var(--bg); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                <span style="font-size: 0.75em; font-weight: bold; color: var(--text-muted); display: block;">CONSCIENCIA</span>
+                                <span id="out-tikun-cons" style="font-size: 0.95em; font-weight: bold; color: var(--secondary); display: block; margin-top: 3px;"></span>
+                            </div>
+                            <div style="flex: 1; background: var(--bg); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
+                                <span style="font-size: 0.75em; font-weight: bold; color: var(--text-muted); display: block;">EXPANSIÓN</span>
+                                <span id="out-tikun-exp" style="font-size: 0.95em; font-weight: bold; color: var(--secondary); display: block; margin-top: 3px;"></span>
+                            </div>
+                        </div>
+                        <div id="out-tikun-colores" style="font-size: 0.85em; color: var(--text); text-align: center; line-height: 1.5;"></div>
                     </div>
                 </div>
             </div>
@@ -1145,7 +1130,9 @@
     
     document.querySelectorAll("#out-genio-espiritu").forEach(el => el.innerHTML = "-");
     document.querySelectorAll("#out-hebreo-espiritu").forEach(el => el.innerHTML = "");
-    
+
+    resetTikun();
+
     console.log("Borrado completado en todos los paneles.");
 }
 
@@ -1183,7 +1170,13 @@ ciudad: document.getElementById("in-ciudad-nac") ? document.getElementById("in-c
                     gMente: document.getElementById("out-genio-mente") ? document.getElementById("out-genio-mente").innerText : "-",
                     hMente: document.getElementById("out-hebreo-mente") ? document.getElementById("out-hebreo-mente").innerText : "",
                     gEsp: document.getElementById("out-genio-espiritu") ? document.getElementById("out-genio-espiritu").innerText : "-",
-                    hEsp: document.getElementById("out-hebreo-espiritu") ? document.getElementById("out-hebreo-espiritu").innerText : ""
+                    hEsp: document.getElementById("out-hebreo-espiritu") ? document.getElementById("out-hebreo-espiritu").innerText : "",
+                    tikunFormula: document.getElementById("out-tikun-formula") ? document.getElementById("out-tikun-formula").textContent : "",
+                    tikunTipo: document.getElementById("out-tikun-tipo") ? document.getElementById("out-tikun-tipo").textContent : "",
+                    tikunUnif: document.getElementById("out-tikun-unif") ? document.getElementById("out-tikun-unif").textContent : "",
+                    tikunCons: document.getElementById("out-tikun-cons") ? document.getElementById("out-tikun-cons").textContent : "",
+                    tikunExp: document.getElementById("out-tikun-exp") ? document.getElementById("out-tikun-exp").textContent : "",
+                    tikunColores: document.getElementById("out-tikun-colores") ? document.getElementById("out-tikun-colores").innerHTML : ""
                 };
 
 
@@ -1206,16 +1199,9 @@ ciudad: document.getElementById("in-ciudad-nac") ? document.getElementById("in-c
                 renderizarGestor();
             }
 
-					function cargarArbol(id) {
-    			let a = archivoKabbalah.find(x => x && x.id === id);
-    			if(a && a.datos) {
-        		// --- NUESTRO CHIVATO PARA LA FOTO ---
-        		
-        
-        		document.getElementById("inNombre").value = a.datos.nombre || "";
-
-					
-					
+			            function cargarArbol(id) {
+                let a = archivoKabbalah.find(x => x && x.id === id);
+                if(a && a.datos) {
                     document.getElementById("inNombre").value = a.datos.nombre || "";
                     document.getElementById("inApe1").value = a.datos.ape1 || "";
                     document.getElementById("inApe2").value = a.datos.ape2 || "";
@@ -1241,6 +1227,16 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                     if(document.getElementById("out-hebreo-espiritu")) document.getElementById("out-hebreo-espiritu").innerText = a.datos.hEsp || "";
 
                     ejecutarCalculo();
+                    // Tikún se recalcula al ejecutarCalculo; si no hay nombre completo mostramos lo guardado
+                    if (a.datos.tikunFormula && document.getElementById('bloque-tikun').style.display === 'none') {
+                        document.getElementById('bloque-tikun').style.display = 'block';
+                        document.getElementById('out-tikun-formula').textContent = a.datos.tikunFormula || '';
+                        document.getElementById('out-tikun-tipo').textContent = a.datos.tikunTipo || '';
+                        document.getElementById('out-tikun-unif').textContent = a.datos.tikunUnif || '';
+                        document.getElementById('out-tikun-cons').textContent = a.datos.tikunCons || '';
+                        document.getElementById('out-tikun-exp').textContent = a.datos.tikunExp || '';
+                        document.getElementById('out-tikun-colores').innerHTML = a.datos.tikunColores || '';
+                    }
                     cerrarGestor();
                 }
             }
@@ -1274,131 +1270,87 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                 itemArrastradoId = null;
             }
 
-			function renderizarGestor() {
-    let grid = document.getElementById('gestor-grid');
-    if (!grid) return;
-    grid.innerHTML = '';
+            function renderizarGestor() {
+                let grid = document.getElementById('gestor-grid');
+                if (!grid) return;
+                grid.innerHTML = '';
 
-    if (carpetaActual !== null) {
-        grid.innerHTML += `<div class="zona-subir" style="cursor:pointer; background: #f8fafc; padding:15px; border-radius:8px; margin-bottom:15px; font-weight:bold; color: #475569; text-align:center; border: 2px dashed #cbd5e1; -webkit-tap-highlight-color: transparent;" onclick="volverArriba()">⬅️ Volver Arriba <br><span style="font-size: 0.8em; font-weight: normal; color: #64748b;">(Suelta un archivo aquí para sacarlo de la carpeta)</span></div>`;
-    }
-
-    let contenedorCarpetas = document.createElement('div');
-    contenedorCarpetas.id = 'lista-carpetas';
-    grid.appendChild(contenedorCarpetas);
-
-    let contenedorArchivos = document.createElement('div');
-    contenedorArchivos.id = 'lista-archivos';
-    grid.appendChild(contenedorArchivos);
-
-    let items = archivoKabbalah.filter(x => {
-        if (!x) return false;
-        let parent = x.parentId || null;
-        return parent === carpetaActual;
-    });
-
-    let carpetas = items.filter(x => x.tipo === 'carpeta');
-    let archivos = items.filter(x => x.tipo === 'archivo');
-
-    carpetas.forEach(item => {
-        let div = document.createElement('div');
-        div.setAttribute('data-id', item.id);
-        div.className = 'carpeta-item';
-        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #bfdbfe; border-radius:8px; margin-bottom:8px; background:rgba(239,246,255,0.8); box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;";
-        div.innerHTML = `<div class="drag-handle" style="cursor: grab; margin-right: 12px; color: #94a3b8; font-size: 1.2rem;">☰</div><div style="cursor:pointer; flex:1; font-weight:bold; color:#2563eb;" onclick="entrarCarpeta('${item.id}')">📁 ${item.nombre}</div><button onclick="eliminarItem('${item.id}')" style="background:none; border:none; cursor:pointer; font-size:1.2em;" title="Eliminar">🗑</button>`;
-        contenedorCarpetas.appendChild(div);
-    });
-
-    archivos.forEach(item => {
-        let div = document.createElement('div');
-        div.setAttribute('data-id', item.id);
-        div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid rgba(0,0,0,0.1); border-radius:8px; margin-bottom:8px; background:rgba(255,255,255,0.8); box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;";
-        div.innerHTML = `<div class="drag-handle" style="cursor: grab; margin-right: 12px; color: #94a3b8; font-size: 1.2rem;">☰</div><div style="flex:1; font-weight: 500; cursor:pointer;" onclick="cargarArbol('${item.id}')">📄 ${item.titulo} <br><span style="font-size:0.8em; color:#64748b; font-weight:normal;">Guardado el ${item.fecha}</span></div><button onclick="eliminarItem('${item.id}')" style="background:none; border:none; cursor:pointer; font-size:1.2em;" title="Eliminar">🗑</button>`;
-        contenedorArchivos.appendChild(div);
-    });
-
-    if (typeof Sortable !== 'undefined') {
-        new Sortable(contenedorCarpetas, {
-            handle: '.drag-handle',
-            animation: 150,
-            delay: 150,
-            delayOnTouchOnly: true,
-            fallbackTolerance: 15,
-            ghostClass: 'fantasma-hueco',     
-            forceFallback: true,              
-            fallbackClass: 'archivo-en-dedo', 
-            fallbackOnBody: true,             
-            onEnd: function (evt) {
-                let movedItem = carpetas.splice(evt.oldIndex, 1)[0];
-                carpetas.splice(evt.newIndex, 0, movedItem);
-                archivoKabbalah = [...carpetas, ...archivos, ...archivoKabbalah.filter(x => x && x.parentId !== carpetaActual)];
-                guardarEnLocal();
-            }
-        });
-
-        new Sortable(contenedorArchivos, {
-            handle: '.drag-handle',
-            animation: 150,
-            delay: 150, 
-            delayOnTouchOnly: true,
-            fallbackTolerance: 15,            // AUMENTADO para que sea más fácil de coger
-            chosenClass: 'archivo-tocado',
-            dragClass: 'archivo-en-dedo',     
-            ghostClass: 'fantasma-hueco',     
-            forceFallback: true,              
-            fallbackClass: 'archivo-en-dedo', 
-            fallbackOnBody: true,             
-            onStart: function(evt) { 
-                itemArrastradoId = evt.item.dataset.id; 
-            },
-            onEnd: function (evt) {
-                let idArrastrado = evt.item.dataset.id;
-                itemArrastradoId = null;
-
-                let e = evt.originalEvent;
-                let touch = (e.changedTouches && e.changedTouches.length > 0) ? e.changedTouches[0] : e;
-                let targetX = touch.clientX;
-                let targetY = touch.clientY;
-
-                evt.item.style.display = 'none';
-                let elementoDebajo = document.elementFromPoint(targetX, targetY);
-                evt.item.style.display = '';
-
-                let carpetaDestino = elementoDebajo ? elementoDebajo.closest('.carpeta-item') : null;
-                let zonaSubir = elementoDebajo ? elementoDebajo.closest('.zona-subir') : null;
-
-                if (carpetaDestino) {
-                    let idCarpeta = carpetaDestino.dataset.id;
-                    let indice = archivoKabbalah.findIndex(x => x && x.id === idArrastrado);
-                    if (indice !== -1) {
-                        archivoKabbalah[indice].parentId = idCarpeta;
-                        guardarEnLocal();
-                        renderizarGestor(); 
-                        return; 
-                    }
-                } else if (zonaSubir && carpetaActual !== null) {
-                    let indice = archivoKabbalah.findIndex(x => x && x.id === idArrastrado);
-                    if (indice !== -1) {
-                        let carpetaObj = archivoKabbalah.find(x => x && x.id === carpetaActual);
-                        let idPadre = carpetaObj ? (carpetaObj.parentId || null) : null;
-                        
-                        archivoKabbalah[indice].parentId = idPadre;
-                        guardarEnLocal();
-                        renderizarGestor();
-                        return; 
-                    }
+                if (carpetaActual !== null) {
+                    grid.innerHTML += `<div style="cursor:pointer; background: #e2e8f0; padding:10px; border-radius:8px; margin-bottom:10px; font-weight:bold; color: #334155;" onclick="volverArriba()">⬅️ Volver Arriba</div>`;
                 }
 
-                let movedItem = archivos.splice(evt.oldIndex, 1)[0];
-                archivos.splice(evt.newIndex, 0, movedItem);
-                archivoKabbalah = [...carpetas, ...archivos, ...archivoKabbalah.filter(x => x && x.parentId !== carpetaActual)];
-                guardarEnLocal();
+                let contenedorCarpetas = document.createElement('div');
+                contenedorCarpetas.id = 'lista-carpetas';
+                grid.appendChild(contenedorCarpetas);
+
+                let contenedorArchivos = document.createElement('div');
+                contenedorArchivos.id = 'lista-archivos';
+                grid.appendChild(contenedorArchivos);
+
+                let items = archivoKabbalah.filter(x => {
+                    if (!x) return false;
+                    let parent = x.parentId || null;
+                    return parent === carpetaActual;
+                });
+
+                let carpetas = items.filter(x => x.tipo === 'carpeta');
+                let archivos = items.filter(x => x.tipo === 'archivo');
+
+                carpetas.forEach(item => {
+                    let div = document.createElement('div');
+                    div.setAttribute('data-id', item.id);
+                    div.setAttribute('ondragover', "event.preventDefault(); this.style.backgroundColor='#e2e8f0';");
+                    div.setAttribute('ondragleave', "this.style.backgroundColor='#fff';");
+                    div.setAttribute('ondrop', `event.preventDefault(); this.style.backgroundColor='#fff'; moverACarpeta('${item.id}')`);
+                    div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid #bfdbfe; border-radius:8px; margin-bottom:8px; background:rgba(239,246,255,0.8); box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none;";
+                    div.innerHTML = `<div class="drag-handle" style="cursor: grab; margin-right: 12px; color: #94a3b8; font-size: 1.2rem;">☰</div><div style="cursor:pointer; flex:1; font-weight:bold; color:#2563eb;" onclick="entrarCarpeta('${item.id}')">📁 ${item.nombre}</div><button onclick="eliminarItem('${item.id}')" style="background:none; border:none; cursor:pointer; font-size:1.2em;" title="Eliminar">🗑</button>`;
+                    contenedorCarpetas.appendChild(div);
+                });
+
+                archivos.forEach(item => {
+                    let div = document.createElement('div');
+                    div.setAttribute('data-id', item.id);
+                    div.style.cssText = "display:flex; justify-content:space-between; align-items:center; padding:12px; border:1px solid rgba(0,0,0,0.1); border-radius:8px; margin-bottom:8px; background:rgba(255,255,255,0.8); box-shadow: 0 2px 4px rgba(0,0,0,0.02); user-select: none; -webkit-user-select: none;";
+                    div.innerHTML = `<div class="drag-handle" style="cursor: grab; margin-right: 12px; color: #94a3b8; font-size: 1.2rem;">☰</div><div style="flex:1; font-weight: 500; cursor:pointer;" onclick="cargarArbol('${item.id}')">📄 ${item.titulo} <br><span style="font-size:0.8em; color:#64748b; font-weight:normal;">Guardado el ${item.fecha}</span></div><button onclick="eliminarItem('${item.id}')" style="background:none; border:none; cursor:pointer; font-size:1.2em;" title="Eliminar">🗑</button>`;
+                    contenedorArchivos.appendChild(div);
+                });
+
+                if (typeof Sortable !== 'undefined') {
+                    new Sortable(contenedorCarpetas, {
+                        handle: '.drag-handle',
+                        animation: 150,
+                        onStart: function(evt) { itemArrastradoId = evt.item.dataset.id; },
+                        onEnd: function (evt) {
+                            itemArrastradoId = null;
+                            if (!window.dropEnCarpeta) {
+                                let movedItem = carpetas.splice(evt.oldIndex, 1)[0];
+                                carpetas.splice(evt.newIndex, 0, movedItem);
+                                archivoKabbalah = [...carpetas, ...archivos, ...archivoKabbalah.filter(x => x && x.parentId !== carpetaActual)];
+                                guardarEnLocal();
+                            } else {
+                                window.dropEnCarpeta = false;
+                            }
+                        }
+                    });
+
+                    new Sortable(contenedorArchivos, {
+                        handle: '.drag-handle',
+                        animation: 150,
+                        onStart: function(evt) { itemArrastradoId = evt.item.dataset.id; },
+                        onEnd: function (evt) {
+                            itemArrastradoId = null;
+                            if (!window.dropEnCarpeta) {
+                                let movedItem = archivos.splice(evt.oldIndex, 1)[0];
+                                archivos.splice(evt.newIndex, 0, movedItem);
+                                archivoKabbalah = [...carpetas, ...archivos, ...archivoKabbalah.filter(x => x && x.parentId !== carpetaActual)];
+                                guardarEnLocal();
+                            } else {
+                                window.dropEnCarpeta = false;
+                            }
+                        }
+                    });
+                }
             }
-        });
-    }
-}
-
-
             // === DICCIONARIOS Y CONSTANTES MATEMÁTICAS / GRÁFICAS ===
             const NOMBRES_HEBREOS = { 1: "כתר", 2: "חכמה", 3: "בינה", 4: "חסד", 5: "גבורה", 6: "תפארת", 7: "נצח", 8: "הוד", 9: "יסוד", 10: "מלכות" };
             const LETRAS_HEBREAS = { 1: 'א', 2: 'ב', 3: 'ג', 4: 'ד', 5: 'ה', 6: 'ו', 7: 'ז', 8: 'ח', 9: 'ט', 10: 'י', 11: 'כ', 12: 'ל', 13: 'מ', 14: 'נ', 15: 'ס', 16: 'ע', 17: 'פ', 18: 'צ', 19: 'ק', 20: 'ר', 21: 'ש', 22: 'ת' };
@@ -1406,16 +1358,11 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
             const DICT_MODERNO = { A: 1, B: 2, C: 3, D: 4, E: 5, F: 6, G: 7, H: 8, I: 9, J: 10, K: 20, L: 30, M: 40, N: 50, 'Ñ': 60, O: 70, P: 80, Q: 90, R: 100, S: 200, T: 300, U: 400, V: 500, W: 600, X: 700, Y: 800, Z: 900 };
             const NOMBRES_SEF = { 1: "Kéter", 2: "Jojmá", 3: "Biná", 4: "Jesed", 5: "Guevurá", 6: "Tiféret", 7: "Netzaj", 8: "Hod", 9: "Yesod", 10: "Maljut" };
             const CAJAS_FIJAS = { 1: 3, 2: 4, 3: 4, 4: 4, 5: 4, 6: 8, 7: 5, 8: 5, 9: 4, 10: 3 };
-		    const CONEXIONES = {
-                1: [1, 3], 2: [1, 6], 3: [3, 2], 
-                4: [2, 6], /* Antes era 2, 4 */
-                5: [2, 4], /* Antes era 2, 6 */
-                6: [3, 6], /* Antes era 3, 5 */
-                7: [3, 5], /* Antes era 3, 6 */
+            const CONEXIONES = {
+                1: [1, 3], 2: [1, 6], 3: [3, 2], 4: [2, 4], 5: [2, 6], 6: [3, 5], 7: [3, 6],
                 8: [5, 4], 9: [4, 6], 10: [4, 7], 11: [5, 6], 12: [5, 8], 13: [6, 7], 14: [6, 9],
                 15: [6, 8], 16: [8, 7], 17: [7, 9], 18: [7, 10], 19: [8, 9], 20: [8, 10], 21: [9, 10], 22: [1, 2]
             };
-
 
             // Coordenadas fijas SVG para el Árbol (Diseño base)
             const NODOS = {
@@ -1547,24 +1494,24 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                 return { normal: normalExpanded, oculto: unique(hiddenComb), all: unique([...normalExpanded, ...hiddenComb]) };
             }
 
-			function getDiagnosticoDinamico(ratio, media, desv) {
-    const limInf = media - desv; // Límite para Sefirot débiles
-    const limSup = media + desv; // Límite para Sefirot fuertes
+            function getDiagnosticoDinamico(ratio, media, desv) {
+                const limInfExtremo = media - desv;
+                const limInfMedio = media - (desv / 2);
+                const limSupMedio = media + (desv / 2);
+                const limSupExtremo = media + desv;
 
-    if (ratio <= limInf) {
-        // Excepción de receptividad-pasiva moderada (Carga exacta de 1 en rango débil)
-        if (ratio === 1.0) {
-            return { texto: "Receptividad-pasiva moderada", color: "#aec6cf" }; // Azul pastel
-        } else {
-            return { texto: "Débil", color: "#ffe5b4" }; // Melocotón suave
-        }
-    } else if (ratio >= limSup) {
-        return { texto: "Fuerte", color: "#ff6961" }; // Rojo pastel
-    } else {
-        return { texto: "Equilibrio", color: "#77dd77" }; // Verde pastel
-    }
-}
-
+                if (ratio < limInfExtremo) {
+                    return { texto: "Débil", color: "#ffe5b4" }; // Melocotón suave
+                } else if (ratio < limInfMedio) {
+                    return { texto: "Medio/Débil", color: "#fdfd96" }; // Amarillo pastel
+                } else if (ratio <= limSupMedio) {
+                    return { texto: "Equilibrio", color: "#77dd77" }; // Verde pastel
+                } else if (ratio <= limSupExtremo) {
+                    return { texto: "Medio/Sobrecarga", color: "#ffb4b0" }; // Rojo claro
+                } else {
+                    return { texto: "Sobrecarga", color: "#ff6961" }; // Rojo pastel
+                }
+            }
 
             // (Función registrarPasoEnSenderos eliminada a favor de la lógica de historial secuencial)
 
@@ -1673,21 +1620,19 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                     elemBody.appendChild(tr);
                 });
 
-				                // 3. Nivel de Integración Global es precisamente 'd'
+                // 3. Nivel de Integración Global es precisamente 'd'
                 document.getElementById("integration-val").innerText = window.desvD.toFixed(3);
 
-                let markdownSefirot = `\n**TABLA 2: CARGAS RELATIVAS DE LAS SEFIROT (Método Villarrubia)**\n`;
-                markdownSefirot += `> **ATENCIÓN IA:** El diagnóstico clínico ya está calculado por el motor local aplicando estrictamente el Método Villarrubia Dinámico. El Promedio General del Árbol es **${window.mediaX.toFixed(3)}** y la Desviación Media es **${window.desvD.toFixed(3)}**. Asume la columna 'Diagnóstico Clínico' como verdad absoluta inamovible (Fuerte, Débil, Equilibrio o Receptividad-pasiva moderada) para tu interpretación psicológica holística.\n\n`;
-                markdownSefirot += `| Sefirá | Líneas Reales/Base | Carga Relativa | Diagnóstico Clínico |\n| :--- | :--- | :--- | :--- |\n`;
-                
+                let markdownSefirot = `\n**TABLA 2: ESTADO DE CARGA DE LAS SEFIROT (Cálculo Dinámico)**\n`;
+                markdownSefirot += `> **ATENCIÓN IA:** El diagnóstico clínico ya está calculado milimétricamente por el motor local usando la media específica del sujeto y su desviación estándar en una escala de 5 niveles. Asume la columna 'Diagnóstico Clínico' como verdad absoluta inamovible para tu interpretación psicológica.\n\n`;
+                markdownSefirot += `| Sefirá | Líneas Reales/Base | Ratio del Sujeto | Diagnóstico Clínico |\n| :--- | :--- | :--- | :--- |\n`;
                 for (let i = 1; i <= 10; i++) {
                     let ratio = ratios[i] || 0; 
                     let baseCount = baselines[i] || 1; 
                     let realCount = ratio * baseCount;
                     let diag = getDiagnosticoDinamico(ratio, window.mediaX, window.desvD).texto;
-                    markdownSefirot += `| ${NOMBRES_SEF[i]} | ${realCount}/${baseCount} | ${ratio.toFixed(3).replace('.',',')} | ${diag} |\n`;
+                    markdownSefirot += `| ${NOMBRES_SEF[i]} | ${realCount}/${baseCount} | ${ratio.toFixed(2).replace('.',',')} | ${diag} |\n`;
                 }
-
 
                 let markdownElementos = `\n#### TABLA 3: BALANCE DE ELEMENTOS\n`;
                 elementos.forEach(el => {
@@ -1895,33 +1840,29 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                 return str;
             }
 
-			function parseDataRender(texto) {
-    let data = { nombre: "SUJETO", fecha: "", acento: null, cicloC: "", cicloL: "", senderos: {}, historial: new Set() };
-    for (let i = 1; i <= 22; i++) data.senderos[i] = [];
-    let lines = texto.split('\n');
-    for (let l of lines) {
-        if (l.toUpperCase().includes("SUJETO:")) data.nombre = l.split(":")[1].trim();
-        if (l.toUpperCase().includes("FECHA:")) data.fecha = l.split(":")[1].trim();
-        if (l.toUpperCase().includes("ACENTO TÓNICO:")) { let m = l.match(/\d+/); if (m) data.acento = parseInt(m[0]); }
-        if (l.toUpperCase().includes("DURACIÓN CICLO CORTO:")) data.cicloC = l.split(":")[1].trim();
-        if (l.toUpperCase().includes("DURACIÓN CICLO LARGO:")) data.cicloL = l.split(":")[1].trim();
-    }
+            function parseDataRender(texto) {
+                let data = { nombre: "SUJETO", fecha: "", acento: null, cicloC: "", cicloL: "", senderos: {}, historial: new Set() };
+                for (let i = 1; i <= 22; i++) data.senderos[i] = [];
+                let lines = texto.split('\n');
+                for (let l of lines) {
+                    if (l.toUpperCase().includes("SUJETO:")) data.nombre = l.split(":")[1].trim();
+                    if (l.toUpperCase().includes("FECHA:")) data.fecha = l.split(":")[1].trim();
+                    if (l.toUpperCase().includes("ACENTO TÓNICO:")) { let m = l.match(/\d+/); if (m) data.acento = parseInt(m[0]); }
+                    if (l.toUpperCase().includes("DURACIÓN CICLO CORTO:")) data.cicloC = l.split(":")[1].trim();
+                    if (l.toUpperCase().includes("DURACIÓN CICLO LARGO:")) data.cicloL = l.split(":")[1].trim();
+                }
+                let currentType = null, lineasParaTabla1 = {};
+                for(let i=1; i<=22; i++) lineasParaTabla1[i] = { cuenta: 0, desglose: [], cruces: 0, acento: (data.acento === i) };
 
-    // --- CHIVATO GLOBAL (SEGURO Y SIN ROMPER NADA) ---
-    
-
-    let currentType = null, lineasParaTabla1 = {};
-    for(let i=1; i<=22; i++) lineasParaTabla1[i] = { cuenta: 0, desglose: [], cruces: 0, acento: (data.acento === i) };
-
-    for (let line of lines) {
-        let l = line.toLowerCase();
-        if (l.includes("bloque")) {
-            if (l.match(/bloque\s*[1-9]\b/)) currentType = "nativo";
-            else if (l.includes("bloque 10")) currentType = "b10"; else if (l.includes("bloque 11")) currentType = "b11";
-            else if (l.includes("bloque 12")) currentType = "b12"; else if (l.includes("bloque 13")) currentType = "b13";
-            else if (l.match(/bloque\s*[a-c]\b/)) currentType = "voc";
-        }
-        if (!currentType || !line.includes(":")) continue;
+                for (let line of lines) {
+                    let l = line.toLowerCase();
+                    if (l.includes("bloque")) {
+                        if (l.match(/bloque\s*[1-9]\b/)) currentType = "nativo";
+                        else if (l.includes("bloque 10")) currentType = "b10"; else if (l.includes("bloque 11")) currentType = "b11";
+                        else if (l.includes("bloque 12")) currentType = "b12"; else if (l.includes("bloque 13")) currentType = "b13";
+                        else if (l.match(/bloque\s*[a-c]\b/)) currentType = "voc";
+                    }
+                    if (!currentType || !line.includes(":")) continue;
 
                     let numStr = line.split(":")[1], parts = numStr.split("-");
                     parts.forEach(part => {
@@ -1950,19 +1891,16 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                 return { data, lineasParaTabla1 };
             }
 
-			// === EXPORTACIÓN DE DATOS AL PORTAPAPELES (ESTILO APP MAESTRA) ===
+// === EXPORTACIÓN DE DATOS AL PORTAPAPELES (ESTILO APP MAESTRA) ===
 function copiarDatosGem() {
     // 1. Comprobamos que el árbol se haya calculado
-    if (!window.lastMarkdownHeader || !window.lastLineasParaTabla1) {
+    if (!window.lastMarkdownHeader) {
         alert("⚠️ Primero debes calcular un Árbol para generar los datos.");
         return;
     }
 
-    // 2. Usamos parseDataRender SOLO para los datos generales (nombre, fecha, etc.)
-    let { data } = parseDataRender(window.lastMarkdownHeader);
-    
-    // 2.5 ¡EL PUENTE! Extraemos la Matriz exacta directamente del motor visual, sin intermediarios
-    let lineasParaTabla1 = window.lastLineasParaTabla1;
+    // 2. Usamos el motor de la App Maestra para extraer la Matriz al milímetro
+    let { data, lineasParaTabla1 } = parseDataRender(window.lastMarkdownHeader);
 
     let md = `# FICHA TÉCNICA DE INGENIERÍA (MOTOR V3.1 + GENIOS PERSONALES)\n`;
     md += `**SUJETO:** ${data.nombre}\n`;
@@ -1980,7 +1918,6 @@ function copiarDatosGem() {
     md += `* **Físico (Cuerpo):** ${gCuerpo} (${hCuerpo})\n`;
     md += `* **Emocional (Mente):** ${gMente} (${hMente})\n`;
     md += `* **Espiritual (Espíritu):** ${gEspiritu} (${hEspiritu})\n\n`;
-
 
     // 4. --- TABLA 1: MATRIZ DE SENDEROS (Formato App Maestra) ---
     md += `### TABLA 1: MATRIZ DE SENDEROS (1-22)\n`;
@@ -2021,222 +1958,7 @@ function copiarDatosGem() {
         alert("❌ Hubo un error al intentar copiar los datos.");
     });
 }
-
-
-// Variable global para controlar qué imagen exportamos
-let tipoExportacion = null;
-
-
-// === FUNCIÓN DE EXPORTACIÓN MAESTRA (VERSIÓN DEFINITIVA: DATOS REALES + TABLAS AJUSTADAS) ===
-function exportarImagenA4(tipo) {
-    try {
-        if (typeof html2canvas === 'undefined') {
-            alert("❌ La librería gráfica no ha cargado. Revisa tu internet.");
-            return;
-        }
-
-        let sourceElement;
-        if (tipo === 'ARBOL') {
-            let svgBox = document.getElementById("svg-container");
-            if (svgBox) sourceElement = svgBox.parentElement;
-        } else if (tipo === 'TABLAS') {
-            sourceElement = document.getElementById("tab-tablas");
-        }
-
-        if (!sourceElement) {
-            alert("❌ No encuentro el contenido visual. Verifica los IDs en tu HTML.");
-            return;
-        }
-
-        // --- EXTRACCIÓN QUIRÚRGICA DE LOS DATOS DIRECTAMENTE DE LAS CASILLAS ---
-        let vNombre = document.getElementById("inNombre") ? document.getElementById("inNombre").value : "";
-        let vApe1 = document.getElementById("inApe1") ? document.getElementById("inApe1").value : "";
-        let vApe2 = document.getElementById("inApe2") ? document.getElementById("inApe2").value : "";
-        let nombrePaciente = `${vNombre} ${vApe1} ${vApe2}`.trim() || "Paciente Anónimo";
-
-        let vDia = document.getElementById("inDia") ? document.getElementById("inDia").value : "00";
-        let vMes = document.getElementById("inMes") ? document.getElementById("inMes").value : "00";
-        let vAno = document.getElementById("inAno") ? document.getElementById("inAno").value : "0000";
-        let vHora = document.getElementById("in-hora-nac") ? document.getElementById("in-hora-nac").value : "00:00";
-        let fechaPaciente = `${vDia}/${vMes}/${vAno} a las ${vHora}`;
-
-        let vCiudad = document.getElementById("in-ciudad-nac") ? document.getElementById("in-ciudad-nac").value : "";
-        let lugarPaciente = vCiudad.trim() || "Lugar Desconocido";
-
-        let acentoStr = window.lastAcento ? `Sendero ${window.lastAcento}` : "Ninguno";
-
-
-        let desvD = (typeof window.desvD !== 'undefined') ? window.desvD.toFixed(3) : "0.000";
-
-        // --- CREACIÓN DEL FOLIO ---
-        let folio = document.createElement("div");
-        folio.style.position = "absolute";
-        folio.style.left = "-20000px"; 
-        folio.style.top = "0";
-        folio.style.width = "210mm";
-        folio.style.background = "#ffffff";
-        folio.style.padding = "20mm";
-        folio.style.boxSizing = "border-box";
-        folio.style.fontFamily = "'Inter', sans-serif";
-        folio.style.color = "#000000";
-
-        // --- CABECERA ---
-        let cabecera = document.createElement("div");
-        cabecera.innerHTML = `
-            <div style="border-bottom: 2px solid #000000; padding-bottom: 10px; margin-bottom: 25px; text-align: center;">
-                <h1 style="margin: 0 0 10px 0; font-size: 1.8rem; font-weight: 800;">INFORME CLÍNICO: ÁRBOL DE LA VIDA</h1>
-                <p style="margin: 0; font-size: 1rem; font-weight: 600;">${nombrePaciente}</p>
-                <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #444444;">Nacido el ${fechaPaciente} en ${lugarPaciente}</p>
-                <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #444444;">Nivel de Integración (d): <strong>${desvD}</strong> | Acento: <strong>${acentoStr}</strong></p>
-            </div>
-        `;
-        folio.appendChild(cabecera);
-
-                // --- CLONACIÓN Y ESCALADO (VERSIÓN VISUAL DEFINITIVA) ---
-        let clone = sourceElement.cloneNode(true);
-        clone.style.display = "block"; 
-        
-		        if(tipo === 'ARBOL') {
-            // 1. ELIMINAR EL ESPACIO BLANCO FANTASMA (Adiós al transform)
-            clone.style.transform = "none";
-            clone.style.width = "100%";
-            clone.style.maxWidth = "100%";
-            clone.style.margin = "0 auto";
-            
-            // 2. CENTRAR EL TÍTULO Y LA LÍNEA AZUL
-            clone.style.textAlign = "center";
-            let titulos = clone.querySelectorAll("h1, h2, h3, h4, p, div");
-            titulos.forEach(t => {
-                if (t.tagName.startsWith('H') || t.tagName === 'P') {
-                    t.style.textAlign = "center";
-                }
-                // Si encontramos la línea azul (suele tener borderBottom), la centramos
-                if (t.style.borderBottom || t.style.borderTop) {
-                    t.style.margin = "0 auto";
-                }
-            });
-
-            // 3. SALVAR A MALJUT (Ampliando el lienzo del SVG desde dentro)
-            let svgElement = clone.querySelector("svg");
-            if (svgElement) {
-                svgElement.style.overflow = "visible";
-                // Agrandamos las coordenadas visuales del dibujo para darle margen
-                let vb = svgElement.getAttribute("viewBox");
-                if (vb) {
-                    let parts = vb.split(/[\s,]+/); 
-                    if (parts.length === 4) {
-                        parts[3] = parseInt(parts[3]) + 80; // Sumamos 80 unidades de aire real abajo
-                        svgElement.setAttribute("viewBox", parts.join(" "));
-                    }
-                }
-                // Para que el SVG se adapte bien a la página
-                svgElement.style.width = "100%";
-                svgElement.style.height = "auto";
-            }
-
-			        } else if (tipo === 'TABLAS') {
-            // 1. ADIÓS A LA CABECERA: Vaciamos el folio antes de meter las tablas
-            folio.innerHTML = ""; 
-
-            // 2. ADIÓS AL CORTE LATERAL: Forzamos un lienzo más ancho
-            folio.style.width = "max-content";
-            folio.style.minWidth = "1000px"; // Anchura de seguridad para que quepan las columnas
-            folio.style.padding = "40px"; // Margen blanco para que respire
-            folio.style.boxSizing = "border-box";
-            
-            // 3. Ajustamos el clon para que ocupe ese nuevo espacio
-            clone.style.transform = "none"; 
-            clone.style.width = "max-content"; 
-            clone.style.maxWidth = "none";
-            clone.style.margin = "0 auto";
-            
-            // 4. Centramos los títulos y líneas
-            clone.style.textAlign = "center";
-            let titulos = clone.querySelectorAll("h1, h2, h3, h4, p, div");
-            titulos.forEach(t => {
-                if (t.tagName.startsWith('H') || t.tagName === 'P') {
-                    t.style.textAlign = "center";
-                }
-                if (t.style.borderBottom || t.style.borderTop) {
-                    t.style.margin = "0 auto";
-                }
-            });
-        }
-
-
-        // --- PREPARAR LA FOTO (Limpiado de duplicados) ---
-        folio.appendChild(clone);
-        document.body.appendChild(folio);
-
-        // A partir de aquí tu código original de html2canvas se queda intacto
-
-        html2canvas(folio, {
-            scale: 2,
-            backgroundColor: "#ffffff",
-            logging: false,
-            useCORS: true
-        }).then(canvas => {
-            let imgData = canvas.toDataURL("image/png");
-            
-            let modal = document.createElement("div");
-            modal.style.position = "fixed";
-            modal.style.top = "0";
-            modal.style.left = "0";
-            modal.style.width = "100%";
-            modal.style.height = "100%";
-            modal.style.backgroundColor = "rgba(0,0,0,0.85)";
-            modal.style.zIndex = "99999";
-            modal.style.display = "flex";
-            modal.style.flexDirection = "column";
-            modal.style.alignItems = "center";
-            modal.style.justifyContent = "center";
-            
-            let msg = document.createElement("p");
-            msg.innerText = "Mantén pulsada la imagen y dale a 'Copiar'";
-            msg.style.color = "white";
-            msg.style.fontSize = "18px";
-            msg.style.marginBottom = "15px";
-            msg.style.fontWeight = "bold";
-            
-            let img = document.createElement("img");
-            img.src = imgData;
-            img.style.maxHeight = "80%";
-            img.style.maxWidth = "90%";
-            img.style.border = "3px solid white";
-            img.style.borderRadius = "8px";
-            
-            let btnCerrar = document.createElement("button");
-            btnCerrar.innerText = "Cerrar";
-            btnCerrar.style.marginTop = "20px";
-            btnCerrar.style.padding = "10px 30px";
-            btnCerrar.style.fontSize = "16px";
-            btnCerrar.style.backgroundColor = "#ff4444";
-            btnCerrar.style.color = "white";
-            btnCerrar.style.border = "none";
-            btnCerrar.style.borderRadius = "5px";
-            btnCerrar.style.cursor = "pointer";
-            btnCerrar.onclick = function() { document.body.removeChild(modal); };
-            
-            modal.appendChild(msg);
-            modal.appendChild(img);
-            modal.appendChild(btnCerrar);
-            document.body.appendChild(modal);
-
-            document.body.removeChild(folio);
-            
-        }).catch(err => {
-            alert("❌ ERROR AL DIBUJAR: " + err);
-            document.body.removeChild(folio);
-        });
-
-    } catch (errorReal) {
-        alert("❌ ERROR CAZADO: " + errorReal.name + " - " + errorReal.message);
-    }
-}
-
-
-
-
+			
             // === BOTÓN "CALCULAR" (COMPUTACIÓN COMPLETA DESDE LOS DATOS PERSONALES) ===
             function ejecutarCalculo() {
                 let nombre = document.getElementById("inNombre").value;
@@ -2273,132 +1995,87 @@ function exportarImagenA4(tipo) {
                 let b12 = procesarDerivadoCombinado([b4, b5], false);
                 let b13 = procesarDerivadoCombinado([b5, b6], false);
 
-				                // === TUBERÍA UNIFICADA: DIBUJO Y TEXTO SINCRONIZADOS AL 100% ===
+                // === TRADUCCIÓN EXTENDIDA DE LAS LÓGICAS VISUALES (FASE 3 - HISTORIAL ESTRICTO) ===
                 let objSenderos = {};
-                let lineasParaTabla1 = {}; // Nace aquí para calcar al dibujo
-                for (let i = 1; i <= 22; i++) {
-                    objSenderos[i] = [];
-                    lineasParaTabla1[i] = { cuenta: 0, desglose: [], cruces: 0, acento: false };
-                }
+                for (let i = 1; i <= 22; i++) objSenderos[i] = [];
 
                 let historialTotal = new Set();
 
-                // Diccionario para traducir el estilo visual a texto para el Markdown
-                const NOM_ESTILOS = {
-                    "solida": "Línea continua",
-                    "zigzag": "Línea zig zag",
-                    "b10_vis": "Línea discontinua",
-                    "b10_ocu": "Línea de cruces",
-                    "b11_vis": "Línea de rayas y puntos",
-                    "b11_ocu": "Línea de rombos", 
-                    "b12": "Línea de puntos",
-                    "b13": "Línea de cuadrados"
-                };
-
-                // Motor Sincronizado: Si lo dibuja, lo escribe en la tabla
-                function registrarPasoSincronizado(bloque, estiloNormal, estiloOculto, nombreBloque) {
+                // Función secuencial de adición de trazos. NO sobrescribe, AÑADE (push).
+                function registrarPasoVisual(bloque, estiloNormal, estiloOculto) {
                     if (!bloque) return;
-                    
                     if (estiloNormal && bloque.normal) {
                         bloque.normal.forEach(num => {
                             if (num >= 1 && num <= 22) {
                                 objSenderos[num].push(estiloNormal);
                                 historialTotal.add(num);
-                                lineasParaTabla1[num].cuenta++;
-                                lineasParaTabla1[num].desglose.push(`${NOM_ESTILOS[estiloNormal]} (${nombreBloque})`);
                             }
                         });
                     }
-                    
                     if (estiloOculto && bloque.oculto) {
                         bloque.oculto.forEach(num => {
                             if (num >= 1 && num <= 22) {
                                 objSenderos[num].push(estiloOculto);
                                 historialTotal.add(num);
-                                lineasParaTabla1[num].cuenta++;
-                                lineasParaTabla1[num].desglose.push(`${NOM_ESTILOS[estiloOculto]} (${nombreBloque} Oculto)`);
                             }
                         });
                     }
                 }
 
-                // Disparamos los Bloques 1 al 9
-                registrarPasoSincronizado(b1, "solida", "zigzag", "BLOQUE 1");
-                registrarPasoSincronizado(b2, "solida", "zigzag", "BLOQUE 2");
-                registrarPasoSincronizado(b3, "solida", "zigzag", "BLOQUE 3");
-                registrarPasoSincronizado(b4, "solida", "zigzag", "BLOQUE 4");
-                registrarPasoSincronizado(b5, "solida", "zigzag", "BLOQUE 5");
-                registrarPasoSincronizado(b6, "solida", "zigzag", "BLOQUE 6");
-                registrarPasoSincronizado(b7, "solida", "zigzag", "BLOQUE 7");
-                registrarPasoSincronizado(b8, "solida", "zigzag", "BLOQUE 8");
-                registrarPasoSincronizado(b9, "solida", "zigzag", "BLOQUE 9");
+                // Bloques 1 al 9 (Nativos y Derivados) -> Sólidas y Zigzag
+                [b1, b2, b3, b4, b5, b6, b7, b8, b9].forEach(b => registrarPasoVisual(b, "solida", "zigzag"));
 
-                // Disparamos Bloques 10 y 11
-                registrarPasoSincronizado(b10, "b10_vis", "b10_ocu", "BLOQUE 10");
-                registrarPasoSincronizado(b11, "b11_vis", "b11_ocu", "BLOQUE 11");
+                // Bloque 10 y 11 (Derivados con estilos punteados específicos)
+                registrarPasoVisual(b10, "b10_vis", "b10_ocu");
+                registrarPasoVisual(b11, "b11_vis", "b11_ocu");
 
-                // Disparamos Bloques 12 y 13
-                registrarPasoSincronizado(b12, "b12", "b12", "BLOQUE 12");
-                registrarPasoSincronizado(b13, "b13", "b13", "BLOQUE 13");
+                // Bloque 12 (Ciclo Corto) y Bloque 13 (Ciclo Largo)
+                registrarPasoVisual(b12, "b12", "b12");
+                registrarPasoVisual(b13, "b13", "b13");
 
-                // Disparamos Bloques Compuestos Vocacionales (A, B, C)
+                // Bloques Compuestos Vocacionales (A, B, C)
                 let bA = procesarDerivadoCombinado([b10, b11], true);
                 let bB = procesarDerivadoCombinado([b12, b13], true);
                 let bC = procesarDerivadoCombinado([bA, bB], true);
 
-                let bloquesVocacionales = [
-                    { data: bA, nombre: "BLOQUE A" },
-                    { data: bB, nombre: "BLOQUE B" },
-                    { data: bC, nombre: "BLOQUE C" }
-                ];
-
-				                bloquesVocacionales.forEach(bv => {
-                    if (!bv.data || !bv.data.all) return;
-                    bv.data.all.forEach(num => {
+                // Lógica Vocacional: Si YA ESTÁ en el historial, NO DEJA LÍNEA sino CRUZ (+). 
+                // Si ES NUEVO, DEJA LÍNEA DE TRIÁNGULOS (voc_new) y se añade al historial.
+                [bA, bB, bC].forEach(b => {
+                    if (!b || !b.all) return;
+                    b.all.forEach(num => {
                         if (num >= 1 && num <= 22) {
                             if (historialTotal.has(num)) {
-                                // Si ya había una línea base (1-13), dibuja la cruz de repetición
+                                // Sendero ya tocado previamente: Sumar contador cruz roja ("+")
                                 objSenderos[num].push("voc_rep");
-                                lineasParaTabla1[num].cruces++; 
                             } else {
-                                // Si no hay línea base, dibuja los triángulos (línea semilla)
+                                // Sendero virgen: Línea de Triángulos Rojos
                                 objSenderos[num].push("voc_new");
-                                // Al no añadirlo al historialTotal, permitimos que haya múltiples líneas semilla
-                                lineasParaTabla1[num].cuenta++;
-                                lineasParaTabla1[num].desglose.push(`Línea de triángulos rojos (${bv.nombre})`);
+                                historialTotal.add(num);
                             }
                         }
                     });
                 });
 
-				
-
-                // Recreamos pathCounts basados ÚNICAMENTE en las líneas reales que se han pintado
+                // Generación Matemática Robusta de `pathCounts` (Restaurada a Fase 1 integral)
+                let mathBlocks = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13];
                 let pathCounts = {};
-                for (let i = 1; i <= 22; i++) {
-                    pathCounts[i] = lineasParaTabla1[i].cuenta;
-                }
-                
-                // --- FIN DE LA TUBERÍA UNIFICADA ---
+                for (let i = 1; i <= 22; i++) pathCounts[i] = 0;
 
+                mathBlocks.forEach(b => {
+                    if(!b) return;
+                    if(b.normal) b.normal.forEach(n => { if (n >= 1 && n <= 22) pathCounts[n]++; });
+                    if(b.oculto) b.oculto.forEach(n => { if (n >= 1 && n <= 22) pathCounts[n]++; });
+                });
 
                 // Calcular de Acento
                 let acentoInput = document.getElementById("inAcentos").value;
                 let tokensAcento = tokenize(acentoInput, isAntiguo);
                 let acentoCalc = tokensAcento.length > 0 ? reducir22(tokensAcento.reduce((s, t) => s + parseInt(String(dict[t])[0]), 0)) : null;
-				
-                if (acentoCalc && lineasParaTabla1[acentoCalc]) {
-                    lineasParaTabla1[acentoCalc].acento = true;
-                }
 
-
-				// Guardar para renderSVGDinámico
+                // Guardar para renderSVGDinámico
                 window.lastPathCounts = pathCounts;
                 window.lastPathData = objSenderos;
                 window.lastAcento = acentoCalc;
-                window.lastLineasParaTabla1 = lineasParaTabla1;
-
-
 				
                 // Traducir senderos a Sefirot usando las Conexiones (Cuentan para inicio y fin)
                 let conteo = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 };
@@ -2417,6 +2094,9 @@ function exportarImagenA4(tipo) {
 
                 window.lastMarkdownHeader = `### FICHA TÉCNICA DE INGENIERÍA\nSUJETO: ${nombre} ${ape1} ${ape2}\nFECHA: ${dia}/${mes}/${ano}\nACENTO TÓNICO: ${acentoCalc !== null ? acentoCalc : "No"}\n` +
                 `DURACIÓN CICLO CORTO: ${cicloCortoVal} meses\nDURACIÓN CICLO LARGO: ${cicloLargoVal} años\n\n` +
+                `#### TABLA 1: DESGLOSE TÉCNICO DE SENDEROS (Origen de las líneas)\n` +
+                `[BLOQUE 1]: ${formatBlock(b1)}\n[BLOQUE 2]: ${formatBlock(b2)}\n[BLOQUE 3]: ${formatBlock(b3)}\n[BLOQUE 4]: ${formatBlock(b4)}\n[BLOQUE 5]: ${formatBlock(b5)}\n` +
+
 				
                 `#### TABLA 1: DESGLOSE TÉCNICO DE SENDEROS (Origen de las líneas)\n` +
                 `[BLOQUE 1]: ${formatBlock(b1)}\n[BLOQUE 2]: ${formatBlock(b2)}\n[BLOQUE 3]: ${formatBlock(b3)}\n[BLOQUE 4]: ${formatBlock(b4)}\n[BLOQUE 5]: ${formatBlock(b5)}\n` +
@@ -2459,10 +2139,23 @@ function exportarImagenA4(tipo) {
                     document.getElementById('out-genio-cuerpo').innerText = "-";
                     document.getElementById('out-genio-mente').innerText = "-";
                     document.getElementById('out-genio-espiritu').innerText = "-";
-                    
+
                     document.getElementById('out-hebreo-cuerpo').innerText = "";
                     document.getElementById('out-hebreo-mente').innerText = "";
                     document.getElementById('out-hebreo-espiritu').innerText = "";
+                }
+
+                // --- TIKÚN (no requiere hora ni ciudad) ---
+                if (nombre && dia && mes && ano) {
+                    function _bs(word) {
+                        if (!word || !word.trim()) return 0;
+                        const tok = tokenize(word, isAntiguo);
+                        return tok.length ? tok.reduce((s,t)=>s+parseInt(String(dict[t]||1)[0]),0) : 0;
+                    }
+                    const tikun = calcularTikun(_bs(nombre), _bs(ape1), _bs(ape2), dia, mes, ano);
+                    mostrarTikun(tikun);
+                } else {
+                    resetTikun();
                 }
 
             } 
@@ -2486,6 +2179,116 @@ function mostrarResultadosGenios(idsPersonales) {
 }
 
 			
+// ============================================================
+// CÁLCULO DEL TIKÚN (V PARTE — Manual de Kabbalah Práctica)
+// ============================================================
+
+const TIKUN_T35 = {1:2,2:3,3:5,4:6,5:8,6:10,7:11,8:13,9:15,10:16,11:18,12:19,13:21,14:5,15:6,16:8,17:10,18:11,19:4,20:5,21:7,22:9,23:10,24:12,25:4,26:6,27:8,28:9,29:11,30:13,31:5,32:7,33:8,34:10,35:12,36:13,37:6,38:7,39:9,40:11,41:12,42:14,43:7,44:8,45:10,46:11,47:13,48:15,49:16,50:9,51:11,52:12,53:14,54:15,55:17,56:10,57:11,58:13,59:14,60:16,61:18,62:1,63:3,64:5,65:6,66:8,67:9,68:2,69:4,70:5,71:7,72:8,73:10,74:3,75:4,76:6,77:8,78:9,79:11,80:12,81:5,82:7,83:8,84:10,85:12,86:13,87:6,88:7,89:9,90:11,91:12,92:14,93:6,94:8,95:10,96:11,97:13,98:15,99:7,100:9,101:10,102:12,103:14,104:15,105:8,106:10,107:11,108:13,109:14,110:16,111:9,112:10,113:12,114:13,115:15,116:17,117:18,118:11,119:13,120:14,121:16,122:17,123:19,124:3,125:4,126:6,127:7,128:9,129:11,130:3,131:5,132:7,133:8,134:10,135:11,136:4,137:6,138:7,139:9,140:11,141:12,142:5,143:6,144:8,145:10,146:11,147:13,148:14,149:7,150:9,151:10,152:12,153:14,154:15,155:8,156:9,157:11,158:13,159:14,160:16,161:9,162:10,163:12,164:13,165:15,166:17,167:9,168:11,169:12,170:14,171:16,172:17,173:10,174:12,175:13,176:15,177:16,178:18,179:11,180:12,181:14,182:15,183:17,184:19,185:20,186:4,187:6,188:7,189:9,190:10,191:12,192:5,193:6,194:8,195:10,196:11,197:13,198:5,199:7,200:9};
+
+const TIKUN_T36 = {1:1,2:3,3:6,4:9,5:14,6:18,7:5,8:11,9:8,10:5,11:12,12:11,13:9,14:9,15:8,16:17,17:17,18:8,19:9,20:10,21:12,22:14,23:7,24:9,25:12,26:15,27:9,28:4,29:7,30:11,31:16};
+
+const TIKUN_T37 = {1:1,2:5,3:9,4:14,5:20,6:9,7:7,8:7,9:7,10:7,11:9,12:10};
+
+const TIKUN_T38 = {1900:11,1901:12,1902:13,1903:14,1904:6,1905:16,1906:18,1907:10,1908:21,1909:4,1910:14,1911:7,1912:9,1913:19,1914:12,1915:5,1916:6,1917:17,1918:10,1919:21,1920:5,1921:16,1922:9,1923:3,1924:14,1925:16,1926:10,1927:21,1928:5,1929:8,1930:19,1931:22,1932:16,1933:19,1934:3,1935:6,1936:18,1937:3,1938:6,1939:9,1940:21,1941:7,1942:18,1943:4,1944:7,1945:11,1946:5,1947:9,1948:12,1949:16,1950:20,1951:15,1952:18,1953:13,1954:17,1955:12,1956:16,1957:20,1958:6,1959:11,1960:15,1961:19,1962:5,1963:19,1964:14,1965:19,1966:5,1967:19,1968:14,1969:10,1970:15,1971:20,1972:16,1973:3,1974:8,1975:22,1976:18,1977:14,1978:20,1979:7,1980:21,1981:18,1982:5,1983:20,1984:7,1985:22,1986:9,1987:6,1988:21,1989:18,1990:6,1991:12,1992:9,1993:15,1994:21,1995:9,1996:6,1997:4,1998:19,1999:7,2000:5,2001:11,2002:9,2003:6,2004:13,2005:20,2006:18,2007:15,2008:4,2009:19,2010:18,2011:16,2012:14,2013:22,2014:20,2015:18,2016:16,2017:6,2018:4,2019:21};
+
+const TIKUN_ANOS_ARABE = new Set([1949,1958,1959,1967,1968,1969,1976,1977,1978,1979,1985,1986,1987,1988,1989,1994,1995,1996,1997,1998,1999]);
+
+// SOLAR por orden hebreo (1-22): 4,7,9,12,14,15,18,20,21,22
+const TIKUN_SOLAR_HEB = new Set([4,7,9,12,14,15,18,20,21,22]);
+// SOLAR por orden árabe (1-28): 3,4,8,9,10,11,12,13,14,15,16,23,25
+const TIKUN_SOLAR_ARA = new Set([3,4,8,9,10,11,12,13,14,15,16,23,25]);
+
+// Tabla XLI — conjuntos A-J: [solar-lunar pares, colores]
+const TIKUN_CONJUNTOS = [
+  { id:'A', pares:[[11,0],[10,0],[9,0],[8,0],[7,0],[6,0],[10,1]], exp:'Rojo escarlata', cExpansion:'Energía/Fe/Afirmación', unif:'Amarillo vivo', cUnif:'Inteligencia/Equilibrio', ctrl:'Rojo carmín', cCtrl:'Energía/Equilibrio' },
+  { id:'B', pares:[[9,1],[8,1],[7,1],[6,1],[5,1],[9,2]], exp:'Rojo bermellón', cExpansion:'Fortaleza', unif:'Amarillo limón', cUnif:'Justicia/Exactitud/Precisión', ctrl:'Rojo magenta', cCtrl:'Desapego' },
+  { id:'C', pares:[[8,2],[7,2],[6,2],[8,3],[5,2]], exp:'Bermellón puro', cExpansion:'Fortaleza', unif:'Verde limón', cUnif:'Justicia/Exactitud/Precisión', ctrl:'Magenta', cCtrl:'Desapego' },
+  { id:'D', pares:[[7,3],[6,3],[4,2],[7,4],[5,3]], exp:'Naranja rojizo', cExpansion:'Fortaleza/Alegría', unif:'Verde hierba', cUnif:'Justicia/Moderación', ctrl:'Magenta violáceo', cCtrl:'Espiritualidad' },
+  { id:'E', pares:[[6,4],[4,3],[5,4],[6,5],[5,5],[4,4],[3,3]], exp:'Anaranjado vivo', cExpansion:'Alegría/Gozo', unif:'Verde vivo', cUnif:'Libertad/Salud/Autorrespeto', ctrl:'Violeta brillante', cCtrl:'Espiritualidad' },
+  { id:'F', pares:[[5,6],[4,5],[3,4],[4,6]], exp:'Anaranjado dorado', cExpansion:'Alegría/Gozo', unif:'Verde esmeralda', cUnif:'Libertad/Salud/Autorrespeto', ctrl:'Violeta profundo', cCtrl:'Espiritualidad' },
+  { id:'G', pares:[[3,5],[4,7],[2,4],[3,6],[3,7]], exp:'Dorado anaranjado', cExpansion:'Prudencia', unif:'Verde mar', cUnif:'Templanza/Suavidad', ctrl:'Violeta azulado', cCtrl:'Empatía' },
+  { id:'H', pares:[[2,5],[3,8],[2,6],[2,7],[2,8]], exp:'Dorado brillante', cExpansion:'Prudencia', unif:'Azul turquesa', cUnif:'Templanza/Moderación', ctrl:'Añil violáceo', cCtrl:'Empatía' },
+  { id:'I', pares:[[2,9],[1,5],[1,6],[1,7],[1,8],[1,9]], exp:'Dorado amarillento', cExpansion:'Prudencia/Sabiduría', unif:'Azul cielo oscuro', cUnif:'Templanza/Afectividad', ctrl:'Azul añil', cCtrl:'Empatía' },
+  { id:'J', pares:[[1,10],[0,11],[0,10],[0,9],[0,8],[0,7],[0,6]], exp:'Amarillo vivo', cExpansion:'Inteligencia/Equilibrio', unif:'Azul profundo', cUnif:'Amor/Entrega', ctrl:'Azul profundo añilado', cCtrl:'Amor/Unidad' }
+];
+
+// Tablas LII.1-6 indexadas por totalLetras y solar count
+const TIKUN_LII = {
+  6: {6:[24,'Hahiniah',48,'Mihael',72,'Mumiah'],5:[20,'Pahaliah',44,'Ielahiah',68,'Jabuiah'],4:[16,'Hakamiah',40,'Ieiazel',64,'Mejiel'],3:[12,"Hah'aiah",36,'Menadel',60,'Mitzrael'],2:[8,'Kahetel',32,'Vasaría',56,'Poiel'],1:[4,'Elemiah',28,'Seehiah',52,'Imamiah'],0:[1,'Vehuiah',25,'Nith-Haiah',49,'Vehuel']},
+  7: {7:[23,'Melahel',47,'Asaliah',71,'Haiaiel'],6:[21,'Neljael',45,'Sealiah',69,'Rohel'],5:[17,'Lauviah',41,'Hehahel',65,'Damabiah'],4:[14,'Mebahel',38,"Ja'amiah",62,'Iah-Hel'],3:[10,'Aladiah',34,'Lehajiah',58,'Ieialael'],2:[7,'Ajaiah',31,'Lekabel',55,'Mebahiah'],1:[3,'Sitael',27,'Ierathel',51,'Hajasiah'],0:[2,'Yeliel',26,'Haaiah',50,'Daniel']},
+  8: {8:[22,'Yeyayel',46,'Ariel',70,'Yabamiah'],7:[21,'Neljael',45,'Sealiah',69,'Rohel'],6:[18,'Kaliel',42,'Mikael',66,'Manakel'],5:[15,'Hariel',39,"Reha'el",63,'Anauel'],4:[11,'Lauviah',35,'Javakiah',59,'Harajel'],3:[9,'Haziel',33,'Iejuiah',57,'Nemamiah'],2:[6,'Lelahel',30,'Omael',54,'Nithael'],1:[5,'Mahasiah',29,'Reiiel',53,'Nanael'],0:[1,'Vehuiah',25,'Nith-Haiah',49,'Vehuel']},
+  9: {9:[24,'Hahiniah',48,'Mihael',72,'Mumiah'],8:[22,'Yeyayel',46,'Ariel',70,'Yabamiah'],7:[19,'Leuviah',43,'Vewaliah',67,"Ei'ael"],6:[16,'Hakamiah',40,'Ieiazel',64,'Mejiel'],5:[13,'Iezalel',37,'Aniel',61,'Umabel'],4:[10,'Aladiah',34,'Lehajiah',58,'Ieialael'],3:[7,'Ajaiah',31,'Lekabel',55,'Mebahiah'],2:[5,'Mahasiah',29,'Reiiel',53,'Nanael'],1:[3,'Sitael',27,'Ierathel',51,'Hajasiah'],0:[1,'Vehuiah',25,'Nith-Haiah',49,'Vehuel']},
+  10:{10:[23,'Melahel',47,'Asaliah',71,'Haiaiel'],9:[21,'Neljael',45,'Sealiah',69,'Rohel'],8:[18,'Kaliel',42,'Hehahel',66,'Manakel'],7:[16,'Hakamiah',40,'Ieiazel',64,'Mejiel'],6:[14,'Mebahel',38,"Ja'amiah",62,'Iah-Hel'],5:[12,"Hah'aiah",36,'Menadel',60,'Mitzrael'],4:[9,'Haziel',33,'Iejuiah',57,'Nemamiah'],3:[7,'Ajaiah',31,'Lekabel',55,'Mebahiah'],2:[5,'Mahasiah',29,'Reiiel',53,'Nanael'],1:[3,'Sitael',27,'Ierathel',51,'Hajasiah'],0:[1,'Vehuiah',25,'Nith-Haiah',49,'Vehuel']},
+  11:{11:[24,'Hahiniah',48,'Mihael',72,'Mumiah'],10:[22,'Yeyayel',46,'Ariel',70,'Yabamiah'],9:[20,'Pahaliah',44,'Ielahiah',68,'Jabuiah'],8:[18,'Kaliel',42,'Hehahel',66,'Manakel'],7:[16,'Hakamiah',40,'Ieiazel',64,'Mejiel'],6:[14,'Mebahel',38,"Ja'amiah",62,'Iah-Hel'],5:[11,'Lauviah',35,'Javakiah',59,'Harajel'],4:[9,'Haziel',33,'Iejuiah',57,'Nemamiah'],3:[7,'Ajaiah',31,'Lekabel',55,'Mebahiah'],2:[5,'Mahasiah',29,'Reiiel',53,'Nanael'],1:[3,'Sitael',27,'Ierathel',51,'Hajasiah'],0:[1,'Vehuiah',25,'Nith-Haiah',49,'Vehuel']}
+};
+
+// Recibe los baseSums ya calculados (computados dentro del closure donde viven tokenize y DICT_*)
+function calcularTikun(origN, origA1, origA2, dia, mes, ano) {
+
+    const nuevoN  = TIKUN_T35[origN]  || null;
+    const nuevoA1 = TIKUN_T35[origA1] || null;
+    const nuevoA2 = TIKUN_T35[origA2] || null;
+    const nuevoDia = TIKUN_T36[dia]   || null;
+    const nuevoMes = TIKUN_T37[mes]   || null;
+    const nuevoAno = TIKUN_T38[ano]   || null;
+
+    const arabeN  = origN  >= 23 && origN  <= 28;
+    const arabeA1 = origA1 >= 23 && origA1 <= 28;
+    const arabeA2 = origA2 >= 23 && origA2 <= 28;
+    const arabeDia = dia >= 23 && dia <= 28;
+    const arabeAno = TIKUN_ANOS_ARABE.has(ano);
+
+    const numArabes = (arabeN?1:0)+(arabeA1?1:0)+(arabeA2?1:0)+(arabeDia?1:0)+(arabeAno?1:0);
+    const totalLetras = 6 + numArabes;
+
+    let solares = 0, lunares = 0;
+    // 6 letras hebreas: nuevo = orden hebreo → solar/lunar
+    [nuevoN, nuevoA1, nuevoA2, nuevoDia, nuevoMes, nuevoAno].forEach(n => {
+        if (n !== null) { if (TIKUN_SOLAR_HEB.has(n)) solares++; else lunares++; }
+    });
+    // Letras árabes: nuevo = orden árabe → solar/lunar
+    [{es:arabeN,v:nuevoN},{es:arabeA1,v:nuevoA1},{es:arabeA2,v:nuevoA2},{es:arabeDia,v:nuevoDia},{es:arabeAno,v:nuevoAno}].forEach(d => {
+        if (d.es && d.v !== null) { if (TIKUN_SOLAR_ARA.has(d.v)) solares++; else lunares++; }
+    });
+
+    const tipo = solares > lunares ? 'LUMINOSO' : lunares > solares ? 'PURIFICADOR' : 'EQUILIBRIO';
+
+    const subtabla = TIKUN_LII[totalLetras];
+    const fila = subtabla ? subtabla[solares] : null;
+
+    const conj = TIKUN_CONJUNTOS.find(c => c.pares.some(p => p[0]===solares && p[1]===lunares)) || null;
+
+    return { solares, lunares, totalLetras, tipo, fila, conj,
+             origN, origA1, origA2, nuevoN, nuevoA1, nuevoA2, nuevoDia, nuevoMes, nuevoAno };
+}
+
+function mostrarTikun(t) {
+    const bloque = document.getElementById('bloque-tikun');
+    if (!t || !t.fila) { if (bloque) bloque.style.display='none'; return; }
+    bloque.style.display = 'block';
+    document.getElementById('out-tikun-formula').textContent =
+        `Fórmula ${t.solares}-${t.lunares} · ${t.totalLetras} letras`;
+    document.getElementById('out-tikun-tipo').textContent = `Tikún ${t.tipo}`;
+    const [nU,nomU,nC,nomC,nE,nomE] = t.fila;
+    document.getElementById('out-tikun-unif').textContent = `Nº${nU}: ${nomU}`;
+    document.getElementById('out-tikun-cons').textContent = `Nº${nC}: ${nomC}`;
+    document.getElementById('out-tikun-exp').textContent  = `Nº${nE}: ${nomE}`;
+    if (t.conj) {
+        document.getElementById('out-tikun-colores').innerHTML =
+            `<b>Conjunto ${t.conj.id}</b> &nbsp;·&nbsp; `+
+            `<span title="${t.conj.cExpansion}">Expansión: <b>${t.conj.exp}</b></span> &nbsp;·&nbsp; `+
+            `<span title="${t.conj.cUnif}">Unif.: <b>${t.conj.unif}</b></span> &nbsp;·&nbsp; `+
+            `<span title="${t.conj.cCtrl}">Control: <b>${t.conj.ctrl}</b></span>`;
+    } else {
+        document.getElementById('out-tikun-colores').textContent = '';
+    }
+}
+
+function resetTikun() {
+    const bloque = document.getElementById('bloque-tikun');
+    if (bloque) bloque.style.display = 'none';
+}
+
             // --- FIN DE LA FUNCIÓN DE CÁLCULO PRINCIPAL ---
 
                 
@@ -11096,9 +10899,6 @@ Toda la zona en torno al centro de la individualidad (**Tiferet**) y su relació
                 </div>
             </div>
         </div>
-<div id="export-a4-container" style="position: absolute; left: -9999px; top: -9999px; width: 210mm; height: 297mm; background: #ffffff; padding: 20mm; box-sizing: border-box; font-family: 'Inter', sans-serif; color: #000000; overflow: hidden; display: flex; flex-direction: column;">
-    <div id="main-export-wrapper" style="flex: 1; display: flex; flex-direction: column;"></div>
-</div>
 
 </body>
 
