@@ -10,6 +10,8 @@
     <link rel="apple-touch-icon" href="icono-192.png">
     <!-- SortableJS CDN para drag and drop fluidos -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <!-- html2canvas para exportar imágenes PNG de alta resolución -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
 	
 	        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -391,6 +393,10 @@
         }
 
         tr:hover td {
+            background-color: #f0f6ff;
+        }
+
+        tbody tr:nth-child(even) td {
             background-color: #f8fafc;
         }
 
@@ -466,13 +472,14 @@
 
         #arbolSVG {
             width: 100%;
-            max-width: 500px;
+            max-width: 600px;
             height: auto;
             margin-top: 1rem;
             background: #ffffff;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            padding: 1rem;
+            border-radius: 14px;
+            border: 1px solid #dde3ec;
+            box-shadow: 0 6px 28px rgba(15, 23, 42, 0.07);
+            padding: 1.25rem;
         }
 
         /* Estilos del Gráfico de Columnas Verticales */
@@ -530,8 +537,8 @@
             color: #64748b;
             background-color: var(--surface);
             padding: 2px 4px;
-            transform: translateY(-50%);
-            /* Auto-center vertical en JS */
+            transform: translateY(50%);
+            /* translateY(50%) centra el label sobre la línea cuando bottom: X coincide */
         }
 
         .col-wrapper {
@@ -636,9 +643,10 @@
         .integration-box {
             margin-top: 1.5rem;
             background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            padding: 1.25rem;
+            padding: 1.25rem 1.5rem;
             border-radius: 12px;
-            border: 1px solid var(--border);
+            border: 1px solid #cbd5e1;
+            border-left: 4px solid #1e3a5f;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -913,17 +921,25 @@
                             <div style="flex: 1; background: var(--bg); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
                                 <span style="font-size: 0.75em; font-weight: bold; color: var(--text-muted); display: block;">UNIFICACIÓN</span>
                                 <span id="out-tikun-unif" style="font-size: 0.95em; font-weight: bold; color: var(--secondary); display: block; margin-top: 3px;"></span>
+                                <span id="out-hebreo-tikun-unif" style="font-size: 1.4em; font-weight: normal; color: var(--primary); display: block; margin-top: 3px;"></span>
                             </div>
                             <div style="flex: 1; background: var(--bg); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
                                 <span style="font-size: 0.75em; font-weight: bold; color: var(--text-muted); display: block;">CONSCIENCIA</span>
                                 <span id="out-tikun-cons" style="font-size: 0.95em; font-weight: bold; color: var(--secondary); display: block; margin-top: 3px;"></span>
+                                <span id="out-hebreo-tikun-cons" style="font-size: 1.4em; font-weight: normal; color: var(--primary); display: block; margin-top: 3px;"></span>
                             </div>
                             <div style="flex: 1; background: var(--bg); padding: 8px; border-radius: 6px; border: 1px solid var(--border);">
                                 <span style="font-size: 0.75em; font-weight: bold; color: var(--text-muted); display: block;">EXPANSIÓN</span>
                                 <span id="out-tikun-exp" style="font-size: 0.95em; font-weight: bold; color: var(--secondary); display: block; margin-top: 3px;"></span>
+                                <span id="out-hebreo-tikun-exp" style="font-size: 1.4em; font-weight: normal; color: var(--primary); display: block; margin-top: 3px;"></span>
                             </div>
                         </div>
                         <div id="out-tikun-colores" style="font-size: 0.85em; color: var(--text); text-align: center; line-height: 1.5;"></div>
+                    </div>
+
+                    <!-- Botón exportar árbol PNG -->
+                    <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px dashed var(--border); text-align: center;">
+                        <button class="btn-main" onclick="exportarImagenInforme('arbol')" style="background: #1e3a5f; max-width: 320px; margin: 0 auto;">🖼️ Descargar Árbol y Gráfica (PNG)</button>
                     </div>
                 </div>
             </div>
@@ -985,10 +1001,15 @@
                             <div class="integration-title">Nivel de Integración (d)</div>
                             <div class="integration-value" id="integration-val">0.000</div>
                         </div>
+
+                        <!-- Botón exportar tablas PNG -->
+                        <div style="margin-top: 1.5rem; text-align: center;">
+                            <button class="btn-main" onclick="exportarImagenInforme('tablas')" style="background: #1e3a5f;">🖼️ Descargar Tablas (PNG)</button>
+                        </div>
                     </div>
                 </div>
             </div>
-  		
+
 
             <!-- TAB 2: TABLAS ANALÍTICAS -->
                 </div> 
@@ -1111,6 +1132,303 @@
                 URL.revokeObjectURL(url);
             }
 
+            // ============================================================
+            // EXPORTACIÓN DE IMÁGENES PNG DE ALTA RESOLUCIÓN
+            // ============================================================
+
+            function construirEncabezadoInforme(titulo) {
+                const nombre = [
+                    document.getElementById('inNombre')?.value || '',
+                    document.getElementById('inApe1')?.value  || '',
+                    document.getElementById('inApe2')?.value  || ''
+                ].filter(Boolean).join(' ') || 'Sin nombre';
+
+                const dia    = document.getElementById('inDia')?.value     || '--';
+                const mes    = document.getElementById('inMes')?.value     || '--';
+                const ano    = document.getElementById('inAno')?.value     || '----';
+                const hora   = document.getElementById('in-hora-nac')?.value  || '--:--';
+                const ciudad = document.getElementById('in-ciudad-nac')?.value || '–';
+                const integ  = (window.desvD !== undefined) ? window.desvD.toFixed(3) : '–';
+                const acento = window.lastAcento ? `Sendero ${window.lastAcento}` : '–';
+
+                const enc = document.createElement('div');
+                enc.style.cssText = `
+                    font-family: 'Inter', Arial, sans-serif;
+                    text-align: center;
+                    padding: 28px 40px 18px;
+                    border-bottom: 2px solid #1e3a5f;
+                    margin-bottom: 20px;
+                    background: #ffffff;
+                `;
+                enc.innerHTML = `
+                    <div style="font-size:10px; letter-spacing:0.18em; text-transform:uppercase; color:#64748b; margin-bottom:6px;">INFORME CLÍNICO · ÁRBOL DE LA VIDA</div>
+                    <div style="font-size:20px; font-weight:800; letter-spacing:0.06em; color:#0f172a; text-transform:uppercase; margin-bottom:10px;">${titulo}</div>
+                    <div style="font-size:15px; font-weight:700; color:#1e3a5f; margin-bottom:4px;">${nombre}</div>
+                    <div style="font-size:12px; color:#475569; margin-bottom:2px;">Nacido/a el ${dia}/${mes}/${ano} a las ${hora} en ${ciudad}</div>
+                    <div style="font-size:12px; color:#475569;">Nivel de Integración (d): <strong>${integ}</strong> &nbsp;·&nbsp; Acento Tónico: <strong>${acento}</strong></div>
+                `;
+                return enc;
+            }
+
+            async function exportarImagenInforme(tipo) {
+                if (window.desvD === undefined) {
+                    alert('Primero calcula los datos del árbol antes de exportar.');
+                    return;
+                }
+                if (typeof html2canvas === 'undefined') {
+                    alert('La librería de exportación no está cargada. Comprueba tu conexión a Internet.');
+                    return;
+                }
+
+                const nombreSlug = [
+                    document.getElementById('inNombre')?.value || '',
+                    document.getElementById('inApe1')?.value   || ''
+                ].filter(Boolean).join('_').replace(/\s+/g, '_') || 'consultante';
+
+                // ---- Helpers internos ----
+
+                function estiloTblaExport(tbl) {
+                    tbl.style.cssText = 'width:100%;border-collapse:collapse;font-size:12px;background:#ffffff;';
+                    tbl.querySelectorAll('th').forEach(th => {
+                        th.style.cssText = 'background:#f1f5f9;color:#334155;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;padding:7px 8px;border-bottom:2px solid #e2e8f0;text-align:center;';
+                    });
+                    tbl.querySelectorAll('tbody tr').forEach((tr, idx) => {
+                        tr.querySelectorAll('td').forEach(td => {
+                            td.style.cssText = 'padding:7px 8px;border-bottom:1px solid #f1f5f9;text-align:center;background:' + (idx % 2 === 1 ? '#f8fafc' : '#ffffff') + ';';
+                        });
+                    });
+                    tbl.querySelectorAll('input').forEach(inp => {
+                        const sp = document.createElement('span');
+                        sp.style.fontWeight = '600';
+                        sp.textContent = inp.value;
+                        inp.replaceWith(sp);
+                    });
+                    tbl.querySelectorAll('.badge').forEach(b => {
+                        const cs = window.getComputedStyle(b);
+                        b.style.cssText = 'display:inline-flex;align-items:center;justify-content:center;padding:3px 10px;border-radius:9999px;font-size:10px;font-weight:700;background-color:' + cs.backgroundColor + ';color:' + cs.color + ';';
+                    });
+                }
+
+                function wrapBorderBox(child, mb) {
+                    const w = document.createElement('div');
+                    w.style.cssText = 'border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;' + (mb ? 'margin-bottom:' + mb + 'px;' : '');
+                    w.appendChild(child);
+                    return w;
+                }
+
+                function panelH(texto) {
+                    const h = document.createElement('div');
+                    h.style.cssText = 'font-weight:700;font-size:12px;color:#0f172a;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;';
+                    h.textContent = texto;
+                    return h;
+                }
+
+                function buildGenioGrid(titleText, bg, data) {
+                    const sec = document.createElement('div');
+                    sec.style.cssText = 'border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:12px;';
+                    const head = document.createElement('div');
+                    head.style.cssText = 'background:' + bg + ';padding:9px 14px;border-bottom:1px solid #e2e8f0;text-align:center;';
+                    head.innerHTML = '<div style="font-size:13px;font-weight:700;color:#1e3a5f;">' + titleText + '</div>';
+                    sec.appendChild(head);
+                    const grid = document.createElement('div');
+                    grid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;padding:10px 12px;gap:8px;';
+                    data.forEach(g => {
+                        const cell = document.createElement('div');
+                        cell.style.cssText = 'text-align:center;padding:8px;background:#fff;border:1px solid #e2e8f0;border-radius:8px;';
+                        cell.innerHTML =
+                            '<div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:4px;">' + g.lbl + '</div>' +
+                            '<div style="font-size:12px;font-weight:700;color:#334155;margin-bottom:4px;">' + (g.nombre || '-') + '</div>' +
+                            '<div style="font-size:20px;color:#1e3a5f;">' + (g.heb || '') + '</div>';
+                        grid.appendChild(cell);
+                    });
+                    sec.appendChild(grid);
+                    return sec;
+                }
+
+                function seccionGenios() {
+                    const wrap = document.createElement('div');
+                    wrap.style.cssText = 'margin-top:14px;';
+                    // Genios personales
+                    const persData = [
+                        { lbl: 'FÍSICO (Cuerpo)',      nombre: document.getElementById('out-genio-cuerpo')?.textContent,   heb: document.getElementById('out-hebreo-cuerpo')?.textContent },
+                        { lbl: 'EMOCIONAL (Mente)',     nombre: document.getElementById('out-genio-mente')?.textContent,    heb: document.getElementById('out-hebreo-mente')?.textContent },
+                        { lbl: 'ESPIRITUAL (Espíritu)', nombre: document.getElementById('out-genio-espiritu')?.textContent, heb: document.getElementById('out-hebreo-espiritu')?.textContent },
+                    ];
+                    wrap.appendChild(buildGenioGrid('Tus Genios Personales', '#f8fafc', persData));
+
+                    // Tikún (si está visible)
+                    const bloqueTikun = document.getElementById('bloque-tikun');
+                    if (bloqueTikun && bloqueTikun.style.display !== 'none') {
+                        const formula   = document.getElementById('out-tikun-formula')?.textContent || '';
+                        const tipoTikun = document.getElementById('out-tikun-tipo')?.textContent || '';
+                        const colHtml   = document.getElementById('out-tikun-colores')?.innerHTML || '';
+                        const tikunData = [
+                            { lbl: 'UNIFICACIÓN', nombre: document.getElementById('out-tikun-unif')?.textContent, heb: document.getElementById('out-hebreo-tikun-unif')?.textContent },
+                            { lbl: 'CONSCIENCIA', nombre: document.getElementById('out-tikun-cons')?.textContent, heb: document.getElementById('out-hebreo-tikun-cons')?.textContent },
+                            { lbl: 'EXPANSIÓN',   nombre: document.getElementById('out-tikun-exp')?.textContent,  heb: document.getElementById('out-hebreo-tikun-exp')?.textContent },
+                        ];
+                        const tikunSec = buildGenioGrid('Tikún Personal (V Parte)', '#f0f6ff', tikunData);
+                        // Añadir subtítulo fórmula/tipo al header
+                        const tikunHead = tikunSec.querySelector('div > div');
+                        if (tikunHead && (formula || tipoTikun)) {
+                            tikunHead.innerHTML += '<div style="font-size:11px;color:#475569;margin-top:2px;font-weight:400;">' + [formula, tipoTikun].filter(Boolean).join(' · ') + '</div>';
+                        }
+                        if (colHtml) {
+                            const colDiv = document.createElement('div');
+                            colDiv.style.cssText = 'font-size:11px;color:#475569;text-align:center;padding:7px 12px;border-top:1px solid #f1f5f9;background:#fafbfc;';
+                            colDiv.innerHTML = colHtml;
+                            tikunSec.appendChild(colDiv);
+                        }
+                        wrap.appendChild(tikunSec);
+                    }
+                    return wrap;
+                }
+
+                // ---- Wrapper off-screen ----
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'position:fixed;left:-9999px;top:0;width:820px;background:#ffffff;font-family:\'Inter\',Arial,sans-serif;padding:0 0 48px 0;box-sizing:border-box;';
+
+                document.body.appendChild(wrapper);
+
+                try {
+                    if (tipo === 'arbol') {
+                        wrapper.appendChild(construirEncabezadoInforme('ÁRBOL DE LA VIDA'));
+                        const centro = document.createElement('div');
+                        centro.style.cssText = 'padding:0 40px;';
+                        wrapper.appendChild(centro);
+
+                        // Árbol SVG → rasterizar a 3× inyectando CSS para corregir fuentes
+                        const svgEl = document.getElementById('arbolSVG');
+                        if (svgEl) {
+                            await new Promise(resolve => {
+                                const serial = new XMLSerializer();
+                                let svgStr = serial.serializeToString(svgEl);
+                                if (!svgStr.includes('xmlns=')) svgStr = svgStr.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+                                // Inyectar CSS: en SVG standalone las clases no heredan CSS del documento,
+                                // así que se sobreescribe el tamaño de fuente a valores seguros.
+                                const cssInject = '<style>.sefira-title{font-family:Arial,sans-serif;font-size:18px;font-weight:800;}.sefira-text{font-family:Arial,sans-serif;font-size:9px;font-weight:700;}</style>';
+                                svgStr = svgStr.includes('</defs>') ? svgStr.replace('</defs>', '</defs>' + cssInject) : svgStr.replace(/(<svg[^>]*>)/, '$1' + cssInject);
+
+                                const vbMatch = svgStr.match(/viewBox="([^"]*)"/);
+                                let vw = 710, vh = 1000;
+                                if (vbMatch) { const p = vbMatch[1].trim().split(/[\s,]+/).map(Number); if (p.length === 4) { vw = p[2]; vh = p[3]; } }
+                                const SCALE = 3;
+                                const cvs = document.createElement('canvas');
+                                cvs.width = vw * SCALE; cvs.height = vh * SCALE;
+                                const ctx = cvs.getContext('2d');
+                                ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, cvs.width, cvs.height);
+                                const blobSvg = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+                                const urlSvg  = URL.createObjectURL(blobSvg);
+                                const imgSvg  = new Image();
+                                imgSvg.onload = () => {
+                                    ctx.drawImage(imgSvg, 0, 0, cvs.width, cvs.height);
+                                    URL.revokeObjectURL(urlSvg);
+                                    const imgEl = document.createElement('img');
+                                    imgEl.src = cvs.toDataURL('image/png');
+                                    imgEl.style.cssText = 'width:100%;max-width:480px;height:auto;display:block;margin:0 auto 12px;border-radius:10px;';
+                                    centro.appendChild(imgEl);
+                                    resolve();
+                                };
+                                imgSvg.onerror = () => { URL.revokeObjectURL(urlSvg); resolve(); };
+                                imgSvg.src = urlSvg;
+                            });
+                        }
+
+                        // Gráfica de barras: clonar el chart-container completo para
+                        // preservar el layout título→barras→leyenda y evitar overflow del título
+                        const barsOrig = document.getElementById('bars-container');
+                        if (barsOrig) {
+                            const chartCont = barsOrig.parentElement;
+                            const cc = chartCont.cloneNode(true);
+                            cc.style.cssText = 'width:100%;display:flex;flex-direction:column;align-items:center;padding:4px 0 0 0;margin:0 0 6px 0;';
+                            // Sólo limitamos el ancho y aseguramos overflow visible; la altura la gestiona el CSS (250px)
+                            const bw2 = cc.querySelector('.bars-wrapper');
+                            if (bw2) {
+                                bw2.style.maxWidth = '660px';
+                                bw2.style.overflow = 'visible';
+                            }
+                            centro.appendChild(cc);
+                        }
+
+                    } else {
+                        // ---- PNG TABLAS Y GENIOS ----
+                        wrapper.appendChild(construirEncabezadoInforme('TABLAS Y GENIOS'));
+                        const cont = document.createElement('div');
+                        cont.style.cssText = 'padding:0 40px;';
+                        wrapper.appendChild(cont);
+
+                        // 2 columnas: sefirot | diagnóstico + elementos + integración
+                        const tabGrid = document.createElement('div');
+                        tabGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:16px;';
+                        cont.appendChild(tabGrid);
+
+                        // Panel izquierdo: Sefirot
+                        const sefPanel = document.createElement('div');
+                        const sefOrig = document.getElementById('sefirot-table');
+                        if (sefOrig) {
+                            sefPanel.appendChild(panelH('2. Sefirot (Carga)'));
+                            const tbl = sefOrig.cloneNode(true);
+                            estiloTblaExport(tbl);
+                            sefPanel.appendChild(wrapBorderBox(tbl));
+                        }
+                        tabGrid.appendChild(sefPanel);
+
+                        // Panel derecho: Diagnóstico + Elementos + Integración
+                        const diagPanel = document.createElement('div');
+                        const diagOrig = document.getElementById('diagnostic-table');
+                        if (diagOrig) {
+                            diagPanel.appendChild(panelH('3. Control Diagnóstico'));
+                            const tbl = diagOrig.cloneNode(true);
+                            estiloTblaExport(tbl);
+                            diagPanel.appendChild(wrapBorderBox(tbl, 16));
+                        }
+                        const elemOrig = document.getElementById('elements-table');
+                        if (elemOrig) {
+                            diagPanel.appendChild(panelH('4. Balance de Elementos'));
+                            const tbl = elemOrig.cloneNode(true);
+                            estiloTblaExport(tbl);
+                            tbl.querySelectorAll('td').forEach(td => {
+                                const t2 = td.textContent.trim();
+                                if (t2.startsWith('-')) td.style.color = '#dc2626';
+                                else if (t2.startsWith('+')) td.style.color = '#16a34a';
+                            });
+                            diagPanel.appendChild(wrapBorderBox(tbl, 16));
+                        }
+                        const integVal = document.getElementById('integration-val')?.textContent || '–';
+                        const ib = document.createElement('div');
+                        ib.style.cssText = 'background:linear-gradient(135deg,#f8fafc,#f1f5f9);padding:12px 18px;border-radius:10px;border:1px solid #cbd5e1;border-left:4px solid #1e3a5f;display:flex;justify-content:space-between;align-items:center;';
+                        ib.innerHTML = '<span style="font-weight:700;color:#334155;font-size:13px;">Nivel de Integración (d)</span><span style="font-size:22px;font-weight:800;color:#1e3a5f;">' + integVal + '</span>';
+                        diagPanel.appendChild(ib);
+                        tabGrid.appendChild(diagPanel);
+
+                        // Todos los genios
+                        cont.appendChild(seccionGenios());
+                    }
+
+                    await document.fonts.ready;
+
+                    const canvas = await html2canvas(wrapper, {
+                        scale: 3,
+                        backgroundColor: '#ffffff',
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: false
+                    });
+
+                    canvas.toBlob(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = (tipo === 'arbol' ? 'Arbol' : 'Tablas') + '_' + nombreSlug + '.png';
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    }, 'image/png');
+
+                } finally {
+                    document.body.removeChild(wrapper);
+                }
+            }
+
             function importarArboles(input) {
                 const file = input.files[0];
                 if (!file) return;
@@ -1226,7 +1544,10 @@ ciudad: document.getElementById("in-ciudad-nac") ? document.getElementById("in-c
                     tikunUnif: document.getElementById("out-tikun-unif") ? document.getElementById("out-tikun-unif").textContent : "",
                     tikunCons: document.getElementById("out-tikun-cons") ? document.getElementById("out-tikun-cons").textContent : "",
                     tikunExp: document.getElementById("out-tikun-exp") ? document.getElementById("out-tikun-exp").textContent : "",
-                    tikunColores: document.getElementById("out-tikun-colores") ? document.getElementById("out-tikun-colores").innerHTML : ""
+                    tikunColores: document.getElementById("out-tikun-colores") ? document.getElementById("out-tikun-colores").innerHTML : "",
+                    tikunHebUnif: document.getElementById("out-hebreo-tikun-unif") ? document.getElementById("out-hebreo-tikun-unif").textContent : "",
+                    tikunHebCons: document.getElementById("out-hebreo-tikun-cons") ? document.getElementById("out-hebreo-tikun-cons").textContent : "",
+                    tikunHebExp: document.getElementById("out-hebreo-tikun-exp") ? document.getElementById("out-hebreo-tikun-exp").textContent : ""
                 };
 
 
@@ -1286,6 +1607,12 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                         document.getElementById('out-tikun-cons').textContent = a.datos.tikunCons || '';
                         document.getElementById('out-tikun-exp').textContent = a.datos.tikunExp || '';
                         document.getElementById('out-tikun-colores').innerHTML = a.datos.tikunColores || '';
+                        const elHU3 = document.getElementById('out-hebreo-tikun-unif');
+                        const elHC3 = document.getElementById('out-hebreo-tikun-cons');
+                        const elHE3 = document.getElementById('out-hebreo-tikun-exp');
+                        if (elHU3) elHU3.textContent = a.datos.tikunHebUnif || '';
+                        if (elHC3) elHC3.textContent = a.datos.tikunHebCons || '';
+                        if (elHE3) elHE3.textContent = a.datos.tikunHebExp || '';
                     }
                     cerrarGestor();
                 }
@@ -1409,7 +1736,11 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
             const NOMBRES_SEF = { 1: "Kéter", 2: "Jojmá", 3: "Biná", 4: "Jesed", 5: "Guevurá", 6: "Tiféret", 7: "Netzaj", 8: "Hod", 9: "Yesod", 10: "Maljut" };
             const CAJAS_FIJAS = { 1: 3, 2: 4, 3: 4, 4: 4, 5: 4, 6: 8, 7: 5, 8: 5, 9: 4, 10: 3 };
             const CONEXIONES = {
-                1: [1, 3], 2: [1, 6], 3: [3, 2], 4: [2, 4], 5: [2, 6], 6: [3, 5], 7: [3, 6],
+                1: [1, 3], 2: [1, 6], 3: [3, 2],
+                4: [2, 6], /* Antes era 2, 4 */
+                5: [2, 4], /* Antes era 2, 6 */
+                6: [3, 6], /* Antes era 3, 5 */
+                7: [3, 5], /* Antes era 3, 6 */
                 8: [5, 4], 9: [4, 6], 10: [4, 7], 11: [5, 6], 12: [5, 8], 13: [6, 7], 14: [6, 9],
                 15: [6, 8], 16: [8, 7], 17: [7, 9], 18: [7, 10], 19: [8, 9], 20: [8, 10], 21: [9, 10], 22: [1, 2]
             };
@@ -1545,21 +1876,19 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
             }
 
             function getDiagnosticoDinamico(ratio, media, desv) {
-                const limInfExtremo = media - desv;
-                const limInfMedio = media - (desv / 2);
-                const limSupMedio = media + (desv / 2);
-                const limSupExtremo = media + desv;
+                const limInf = media - desv;
+                const limSup = media + desv;
 
-                if (ratio < limInfExtremo) {
-                    return { texto: "Débil", color: "#ffe5b4" }; // Melocotón suave
-                } else if (ratio < limInfMedio) {
-                    return { texto: "Medio/Débil", color: "#fdfd96" }; // Amarillo pastel
-                } else if (ratio <= limSupMedio) {
-                    return { texto: "Equilibrio", color: "#77dd77" }; // Verde pastel
-                } else if (ratio <= limSupExtremo) {
-                    return { texto: "Medio/Sobrecarga", color: "#ffb4b0" }; // Rojo claro
+                if (ratio <= limInf) {
+                    if (ratio === 1.0) {
+                        return { texto: "Receptividad-pasiva moderada", color: "#aec6cf" };
+                    } else {
+                        return { texto: "Débil", color: "#ffe5b4" };
+                    }
+                } else if (ratio >= limSup) {
+                    return { texto: "Fuerte", color: "#ff6961" };
                 } else {
-                    return { texto: "Sobrecarga", color: "#ff6961" }; // Rojo pastel
+                    return { texto: "Equilibrio", color: "#77dd77" };
                 }
             }
 
@@ -1767,7 +2096,7 @@ if(document.getElementById("in-ciudad-nac")) document.getElementById("in-ciudad-
                 let pathData = window.lastPathData || {};
                 let acento = window.lastAcento || null;
 
-                let svg = `<svg id="arbolSVG" viewBox="0 0 650 950" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 650px;">`;
+                let svg = `<svg id="arbolSVG" viewBox="-30 -20 710 1000" xmlns="http://www.w3.org/2000/svg" style="width: 100%; max-width: 600px;">`;
 
                 // Inyectar defs para filtro de resplandor (glow) circular perfecto
                 svg += `<defs>
@@ -2045,20 +2374,36 @@ function copiarDatosGem() {
                 let b12 = procesarDerivadoCombinado([b4, b5], false);
                 let b13 = procesarDerivadoCombinado([b5, b6], false);
 
-                // === TRADUCCIÓN EXTENDIDA DE LAS LÓGICAS VISUALES (FASE 3 - HISTORIAL ESTRICTO) ===
+                // === TUBERÍA UNIFICADA: DIBUJO Y TEXTO SINCRONIZADOS AL 100% ===
                 let objSenderos = {};
-                for (let i = 1; i <= 22; i++) objSenderos[i] = [];
+                let lineasParaTabla1 = {};
+                for (let i = 1; i <= 22; i++) {
+                    objSenderos[i] = [];
+                    lineasParaTabla1[i] = { cuenta: 0, desglose: [], cruces: 0, acento: false };
+                }
 
                 let historialTotal = new Set();
 
-                // Función secuencial de adición de trazos. NO sobrescribe, AÑADE (push).
-                function registrarPasoVisual(bloque, estiloNormal, estiloOculto) {
+                const NOM_ESTILOS = {
+                    "solida": "Línea continua",
+                    "zigzag": "Línea zig zag",
+                    "b10_vis": "Línea discontinua",
+                    "b10_ocu": "Línea de cruces",
+                    "b11_vis": "Línea de rayas y puntos",
+                    "b11_ocu": "Línea de rombos",
+                    "b12": "Línea de puntos",
+                    "b13": "Línea de cuadrados"
+                };
+
+                function registrarPasoSincronizado(bloque, estiloNormal, estiloOculto, nombreBloque) {
                     if (!bloque) return;
                     if (estiloNormal && bloque.normal) {
                         bloque.normal.forEach(num => {
                             if (num >= 1 && num <= 22) {
                                 objSenderos[num].push(estiloNormal);
                                 historialTotal.add(num);
+                                lineasParaTabla1[num].cuenta++;
+                                lineasParaTabla1[num].desglose.push(`${NOM_ESTILOS[estiloNormal]} (${nombreBloque})`);
                             }
                         });
                     }
@@ -2067,65 +2412,76 @@ function copiarDatosGem() {
                             if (num >= 1 && num <= 22) {
                                 objSenderos[num].push(estiloOculto);
                                 historialTotal.add(num);
+                                lineasParaTabla1[num].cuenta++;
+                                lineasParaTabla1[num].desglose.push(`${NOM_ESTILOS[estiloOculto]} (${nombreBloque} Oculto)`);
                             }
                         });
                     }
                 }
 
-                // Bloques 1 al 9 (Nativos y Derivados) -> Sólidas y Zigzag
-                [b1, b2, b3, b4, b5, b6, b7, b8, b9].forEach(b => registrarPasoVisual(b, "solida", "zigzag"));
+                registrarPasoSincronizado(b1, "solida", "zigzag", "BLOQUE 1");
+                registrarPasoSincronizado(b2, "solida", "zigzag", "BLOQUE 2");
+                registrarPasoSincronizado(b3, "solida", "zigzag", "BLOQUE 3");
+                registrarPasoSincronizado(b4, "solida", "zigzag", "BLOQUE 4");
+                registrarPasoSincronizado(b5, "solida", "zigzag", "BLOQUE 5");
+                registrarPasoSincronizado(b6, "solida", "zigzag", "BLOQUE 6");
+                registrarPasoSincronizado(b7, "solida", "zigzag", "BLOQUE 7");
+                registrarPasoSincronizado(b8, "solida", "zigzag", "BLOQUE 8");
+                registrarPasoSincronizado(b9, "solida", "zigzag", "BLOQUE 9");
 
-                // Bloque 10 y 11 (Derivados con estilos punteados específicos)
-                registrarPasoVisual(b10, "b10_vis", "b10_ocu");
-                registrarPasoVisual(b11, "b11_vis", "b11_ocu");
+                registrarPasoSincronizado(b10, "b10_vis", "b10_ocu", "BLOQUE 10");
+                registrarPasoSincronizado(b11, "b11_vis", "b11_ocu", "BLOQUE 11");
 
-                // Bloque 12 (Ciclo Corto) y Bloque 13 (Ciclo Largo)
-                registrarPasoVisual(b12, "b12", "b12");
-                registrarPasoVisual(b13, "b13", "b13");
+                registrarPasoSincronizado(b12, "b12", "b12", "BLOQUE 12");
+                registrarPasoSincronizado(b13, "b13", "b13", "BLOQUE 13");
 
                 // Bloques Compuestos Vocacionales (A, B, C)
                 let bA = procesarDerivadoCombinado([b10, b11], true);
                 let bB = procesarDerivadoCombinado([b12, b13], true);
                 let bC = procesarDerivadoCombinado([bA, bB], true);
 
-                // Lógica Vocacional: Si YA ESTÁ en el historial, NO DEJA LÍNEA sino CRUZ (+). 
-                // Si ES NUEVO, DEJA LÍNEA DE TRIÁNGULOS (voc_new) y se añade al historial.
-                [bA, bB, bC].forEach(b => {
-                    if (!b || !b.all) return;
-                    b.all.forEach(num => {
+                let bloquesVocacionales = [
+                    { data: bA, nombre: "BLOQUE A" },
+                    { data: bB, nombre: "BLOQUE B" },
+                    { data: bC, nombre: "BLOQUE C" }
+                ];
+
+                bloquesVocacionales.forEach(bv => {
+                    if (!bv.data || !bv.data.all) return;
+                    bv.data.all.forEach(num => {
                         if (num >= 1 && num <= 22) {
                             if (historialTotal.has(num)) {
-                                // Sendero ya tocado previamente: Sumar contador cruz roja ("+")
                                 objSenderos[num].push("voc_rep");
+                                lineasParaTabla1[num].cruces++;
                             } else {
-                                // Sendero virgen: Línea de Triángulos Rojos
                                 objSenderos[num].push("voc_new");
-                                historialTotal.add(num);
+                                // Al no añadirlo al historialTotal, permitimos múltiples líneas semilla
+                                lineasParaTabla1[num].cuenta++;
+                                lineasParaTabla1[num].desglose.push(`Línea de triángulos rojos (${bv.nombre})`);
                             }
                         }
                     });
                 });
 
-                // Generación Matemática Robusta de `pathCounts` (Restaurada a Fase 1 integral)
-                let mathBlocks = [b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11, b12, b13];
                 let pathCounts = {};
-                for (let i = 1; i <= 22; i++) pathCounts[i] = 0;
-
-                mathBlocks.forEach(b => {
-                    if(!b) return;
-                    if(b.normal) b.normal.forEach(n => { if (n >= 1 && n <= 22) pathCounts[n]++; });
-                    if(b.oculto) b.oculto.forEach(n => { if (n >= 1 && n <= 22) pathCounts[n]++; });
-                });
+                for (let i = 1; i <= 22; i++) {
+                    pathCounts[i] = lineasParaTabla1[i].cuenta;
+                }
 
                 // Calcular de Acento
                 let acentoInput = document.getElementById("inAcentos").value;
                 let tokensAcento = tokenize(acentoInput, isAntiguo);
                 let acentoCalc = tokensAcento.length > 0 ? reducir22(tokensAcento.reduce((s, t) => s + parseInt(String(dict[t])[0]), 0)) : null;
 
+                if (acentoCalc && lineasParaTabla1[acentoCalc]) {
+                    lineasParaTabla1[acentoCalc].acento = true;
+                }
+
                 // Guardar para renderSVGDinámico
                 window.lastPathCounts = pathCounts;
                 window.lastPathData = objSenderos;
                 window.lastAcento = acentoCalc;
+                window.lastLineasParaTabla1 = lineasParaTabla1;
 				
                 // Traducir senderos a Sefirot usando las Conexiones (Cuentan para inicio y fin)
                 let conteo = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0 };
@@ -2144,10 +2500,6 @@ function copiarDatosGem() {
 
                 window.lastMarkdownHeader = `### FICHA TÉCNICA DE INGENIERÍA\nSUJETO: ${nombre} ${ape1} ${ape2}\nFECHA: ${dia}/${mes}/${ano}\nACENTO TÓNICO: ${acentoCalc !== null ? acentoCalc : "No"}\n` +
                 `DURACIÓN CICLO CORTO: ${cicloCortoVal} meses\nDURACIÓN CICLO LARGO: ${cicloLargoVal} años\n\n` +
-                `#### TABLA 1: DESGLOSE TÉCNICO DE SENDEROS (Origen de las líneas)\n` +
-                `[BLOQUE 1]: ${formatBlock(b1)}\n[BLOQUE 2]: ${formatBlock(b2)}\n[BLOQUE 3]: ${formatBlock(b3)}\n[BLOQUE 4]: ${formatBlock(b4)}\n[BLOQUE 5]: ${formatBlock(b5)}\n` +
-
-				
                 `#### TABLA 1: DESGLOSE TÉCNICO DE SENDEROS (Origen de las líneas)\n` +
                 `[BLOQUE 1]: ${formatBlock(b1)}\n[BLOQUE 2]: ${formatBlock(b2)}\n[BLOQUE 3]: ${formatBlock(b3)}\n[BLOQUE 4]: ${formatBlock(b4)}\n[BLOQUE 5]: ${formatBlock(b5)}\n` +
                 `[BLOQUE 6]: ${formatBlock(b6)}\n[BLOQUE 7]: ${formatBlock(b7)}\n[BLOQUE 8]: ${formatBlock(b8)}\n[BLOQUE 9]: ${formatBlock(b9)}\n[BLOQUE 10]: ${formatBlock(b10)}\n` +
@@ -2323,6 +2675,14 @@ function mostrarTikun(t) {
     document.getElementById('out-tikun-unif').textContent = `Nº${nU}: ${nomU}`;
     document.getElementById('out-tikun-cons').textContent = `Nº${nC}: ${nomC}`;
     document.getElementById('out-tikun-exp').textContent  = `Nº${nE}: ${nomE}`;
+    const hU = DB_GENIOS[nU]?.hebreo || '', hC = DB_GENIOS[nC]?.hebreo || '', hE = DB_GENIOS[nE]?.hebreo || '';
+    const elHU = document.getElementById('out-hebreo-tikun-unif');
+    const elHC = document.getElementById('out-hebreo-tikun-cons');
+    const elHE = document.getElementById('out-hebreo-tikun-exp');
+    if (elHU) elHU.textContent = hU;
+    if (elHC) elHC.textContent = hC;
+    if (elHE) elHE.textContent = hE;
+    window.lastTikunIds = { unif: nU, cons: nC, exp: nE };
     if (t.conj) {
         document.getElementById('out-tikun-colores').innerHTML =
             `<b>Conjunto ${t.conj.id}</b> &nbsp;·&nbsp; `+
@@ -2337,6 +2697,11 @@ function mostrarTikun(t) {
 function resetTikun() {
     const bloque = document.getElementById('bloque-tikun');
     if (bloque) bloque.style.display = 'none';
+    ['out-hebreo-tikun-unif','out-hebreo-tikun-cons','out-hebreo-tikun-exp'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+    });
+    window.lastTikunIds = null;
 }
 
             // --- FIN DE LA FUNCIÓN DE CÁLCULO PRINCIPAL ---
